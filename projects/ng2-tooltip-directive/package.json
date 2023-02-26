@@ -1,6 +1,6 @@
 {
-  "name": "ng2-tooltip-directive",
-  "version": "2.10.0",
+  "name": "ng2-tooltip-directive-ngfix",
+  "version": "15.2.0",
   "description": "Tooltip for Angular",
   "repository": {
     "type": "git",
@@ -24,8 +24,8 @@
     "url": "https://github.com/drozhzhin-n-e/ng2-tooltip-directive/issues"
   },
   "peerDependencies": {
-    "@angular/common": "^14.2.12",
-    "@angular/core": "^14.2.12"
+    "@angular/common": "^15.2.0",
+    "@angular/core": "^15.2.0"
   },
   "dependencies": {
     "tslib": "^2.5.0"
