@@ -1,8 +1,6 @@
 # Tooltip for Angular
 
-[![Build Status](https://travis-ci.org/drozhzhin-n-e/ng2-tooltip-directive.svg?branch=master)](https://travis-ci.org/drozhzhin-n-e/ng2-tooltip-directive) <img src="https://badgen.net/bundlephobia/min/ng2-tooltip-directive" />
-
-**Please note:** This is an **Angular 15** compatible fork of the no longer maintained npm-library [ng2-tooltip-directive](https://www.npmjs.com/package/ng2-tooltip-directive).
+**Please note:** This is an **Angular 15** compatible fork of [ng2-tooltip-directive](https://www.npmjs.com/package/ng2-tooltip-directive).
 
 The tooltip is a pop-up tip that appears when you hover over an item or click on it.
 
@@ -20,7 +18,7 @@ Install the npm package.
 Import `Ng2Module`:
 
 ```ts
-import { TooltipModule } from 'ng2-tooltip-directive';
+import { TooltipModule } from 'ng2-tooltip-directive-ngfix';
  
 @NgModule({
     imports: [ TooltipModule ]
@@ -69,7 +67,7 @@ You can pass HTML as content :
 
 Create a file with your settings, for example:
 ```ts
-import { TooltipOptions } from 'ng2-tooltip-directive';
+import { TooltipOptions } from 'ng2-tooltip-directive-ngfix';
 
 export const MyDefaultTooltipOptions: TooltipOptions = {
   'show-delay': 500
@@ -78,7 +76,7 @@ export const MyDefaultTooltipOptions: TooltipOptions = {
     
 And pass your parameters when importing the module:
 ```ts
-import { TooltipModule, TooltipOptions } from 'ng2-tooltip-directive';
+import { TooltipModule, TooltipOptions } from 'ng2-tooltip-directive-ngfix';
 import { MyDefaultTooltipOptions } from './my-default-options';
  
 @NgModule({
