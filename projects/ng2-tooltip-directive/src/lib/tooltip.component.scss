@@ -157,46 +157,46 @@
   /* White-Blue Theme by kellermat */
 
   &.tooltip-top.tooltip-white-blue {
-    border: 1px solid blue !important;
+    border: 1px solid blue;
   
     .tooltip-arrow:after {
       border-top: 1px solid blue;
       border-right: 1px solid blue;
-      top: 0px !important;
-      right: 0px !important;
+      top: 0px;
+      right: 0px;
     }
   }
   
   &.tooltip-bottom.tooltip-white-blue {
-    border: 1px solid blue !important;
+    border: 1px solid blue;
   
     .tooltip-arrow::after {
       border-bottom: 1px solid blue;
       border-left: 1px solid blue;
-      top: .5px !important;
-      right: -1px !important;
+      top: .5px;
+      right: -1px;
     }
   }
   
   &.tooltip-left.tooltip-white-blue {
-    border: 1px solid blue !important;
+    border: 1px solid blue;
   
     .tooltip-arrow::after {
       border-top: 1px solid blue;
       border-left: 1px solid blue;
-      top: -1px !important;
-      right: -1px !important;
+      top: -1px;
+      right: -1px;
     }
   }
   
   &.tooltip-right.tooltip-white-blue {
-    border: 1px solid blue !important;
+    border: 1px solid blue;
   
     .tooltip-arrow::after {
       border-bottom: 1px solid blue;
       border-right: 1px solid blue;
-      top: 0px !important;
-      right: 0px !important;
+      top: 0px;
+      right: 0px;
     }
   }
 
