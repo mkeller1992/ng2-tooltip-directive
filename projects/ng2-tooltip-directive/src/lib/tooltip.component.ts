@@ -1,4 +1,6 @@
 import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, Renderer2 } from '@angular/core';
+import { defaultOptions } from './default-options.const';
+import { TooltipOptions } from './options.interface';
 
 @Component({
     selector: 'tooltip',
@@ -6,7 +8,7 @@ import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, 
     host: {
         'class': 'tooltip'
     },
-    styleUrls: ['./tooltip.component.sass']
+    styleUrls: ['./tooltip.component.scss']
 })
 
 export class TooltipComponent {
@@ -25,6 +27,7 @@ export class TooltipComponent {
     @HostBinding('class.tooltip-show') hostClassShow!: boolean;
     @HostBinding('class.tooltip-shadow') hostClassShadow!: boolean;
     @HostBinding('class.tooltip-light') hostClassLight!: boolean;
+    @HostBinding('class.tooltip-white-blue') hostClassWhiteBlue!: boolean;    
 
     @HostListener('transitionend', ['$event'])
     transitionEnd(event:any) {
@@ -45,6 +48,10 @@ export class TooltipComponent {
         return this._show;
     }
 
+    get isLightTheme() {
+        return this.options.theme === 'light' || this.options.theme === 'white-blue';
+    }
+
     get placement() {
         return this.data.options.placement;
     }
@@ -61,7 +68,7 @@ export class TooltipComponent {
         return this.data.elementPosition;
     }
 
-    get options() {
+    get options(): TooltipOptions {
         return this.data.options;
     }
 
@@ -73,10 +80,6 @@ export class TooltipComponent {
         return Number(this.data.options.offset);
     }
 
-    get isThemeLight() {
-        return this.options['theme'] === 'light';
-    }
-
     constructor(private elementRef: ElementRef, private renderer: Renderer2) {}
 
     ngOnInit() {
@@ -85,6 +88,7 @@ export class TooltipComponent {
     }
 
     setPosition(): void {
+
         if (this.setHostStyle(this.placement)) {
             this.setPlacementClass(this.placement);
             return;
@@ -178,7 +182,7 @@ export class TooltipComponent {
 
     setZIndex(): void {
         if (this.options['zIndex'] !== 0) {
-            this.hostStyleZIndex = this.options['zIndex'];
+            this.hostStyleZIndex = this.options.zIndex ?? defaultOptions.zIndex ?? 0;
         }
     }
 
@@ -207,9 +211,10 @@ export class TooltipComponent {
         this.setPointerEvents();
         this.setAnimationDuration();
 
-        this.hostClassShadow = this.options['shadow'];
-        this.hostClassLight = this.isThemeLight;
-        this.hostStyleMaxWidth = this.options['maxWidth'];
+        this.hostClassShadow = this.options.shadow ?? defaultOptions.shadow ?? true;
+        this.hostClassLight = this.options.theme === 'light' || this.options.theme === 'white-blue';
+        this.hostClassWhiteBlue = this.options.theme === 'white-blue';
+        this.hostStyleMaxWidth = this.options.maxWidth ?? defaultOptions.maxWidth ?? '';
         this.hostStyleWidth = this.options['width'] ? this.options['width'] : '';
     }
 }

@@ -1,8 +1,11 @@
-import { Directive, ElementRef, HostListener, Input, ComponentFactoryResolver, EmbeddedViewRef, ApplicationRef, Injector, ComponentRef, OnInit, Output, EventEmitter, OnDestroy, Inject, Optional, SimpleChanges } from '@angular/core';
-import { TooltipComponent } from './tooltip.component';
-import { TooltipOptionsService } from './options.service';
-import { defaultOptions, backwardCompatibilityOptions } from './options';
+import { ApplicationRef, Directive, ElementRef, EventEmitter, HostListener, Inject, Injector, Input, OnDestroy, Optional, Output, SimpleChanges, ViewContainerRef } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { defaultOptions } from './default-options.const';
 import { TooltipOptions } from './options.interface';
+import { TooltipOptionsService } from './options.service';
+import { TooltipComponent } from './tooltip.component';
+
+export type ContentType = "string" | "html" | "template";
 
 export interface AdComponent {
     data: any;
@@ -16,7 +19,7 @@ export interface AdComponent {
     exportAs: 'tooltip',
 })
 
-export class TooltipDirective {
+export class TooltipDirective implements OnDestroy {
 
     hideTimeoutId!: number;
     destroyTimeoutId!: number;
@@ -25,72 +28,49 @@ export class TooltipDirective {
     showTimeoutId!: number;
     componentRef: any;
     elementPosition: any;
-    _id: any;
-    _options: any = {};
-    _defaultOptions: any;
-    _destroyDelay!: number;
-    componentSubscribe: any;
-    _contentType: "string" | "html" | "template" = "string";
-    _showDelay!: number;
-    _hideDelay!: number;
-    _zIndex!: number;
-    _tooltipClass!: string;
-    _animationDuration!: number;
-    _maxWidth!: string;
+    private _options: TooltipOptions = {};
+    private _destroyDelay!: number;
+    private _showDelay!: number;
+    private _hideDelay!: number;
+    private _tooltipClass!: string;
+    private _animationDuration!: number;
+    private _maxWidth!: string;
 
-    @Input('options') set options(value: TooltipOptions) {
+    private _subscriptions = new Subscription();
+
+    @Input('id')
+    id: any;
+
+    @Input('options')
+    set options(value: TooltipOptions) {
         if (value && defaultOptions) {
             this._options = value;
         }
     }
-    get options() {
+    get options(): TooltipOptions {
         return this._options;
     }
 
-    @Input('tooltip') tooltipValue!: string;
-    @Input('placement') placement!: string;
-    @Input('autoPlacement') autoPlacement!: boolean;
+    @Input('tooltip')
+    tooltipValue!: string;
 
-    // Content type
-    @Input('content-type') set contentTypeBackwardCompatibility(value: "string" | "html" | "template") {
-        if (value) {
-            this._contentType = value;
-        }
-    }
-    @Input('contentType') set contentType(value: "string" | "html" | "template") {
-        if (value) {
-            this._contentType = value;
-        }
-    }
-    get contentType() {
-        return this._contentType;
-    }
+    @Input('placement')
+    placement!: string;
 
-    @Input('hide-delay-mobile') hideDelayMobile!: number;
-    @Input('hideDelayTouchscreen') hideDelayTouchscreen!: number;
+    @Input('autoPlacement')
+    autoPlacement!: boolean;
 
-    // z-index
-    @Input('z-index') set zIndexBackwardCompatibility(value: number) {
-        if (value) {
-            this._zIndex = value;
-        }
-    }
-    @Input('zIndex') set zIndex(value: number) {
-        if (value) {
-            this._zIndex = value;
-        }
-    }
-    get zIndex() {
-        return this._zIndex;
-    }
+    @Input('contentType')
+    contentType: ContentType = 'string';
 
-    // Animation duration
-    @Input('animation-duration') set animationDurationBackwardCompatibility(value: number) {
-        if (value) {
-            this._animationDuration = value;
-        }
-    }
-    @Input('animationDuration') set animationDuration(value: number) {
+    @Input('hideDelayTouchscreen')
+    hideDelayTouchscreen!: number;
+
+    @Input('zIndex')
+    zIndex!: number;
+
+    @Input('animationDuration')
+    set animationDuration(value: number) {
         if (value) {
             this._animationDuration = value;
         }
@@ -99,16 +79,11 @@ export class TooltipDirective {
         return this._animationDuration;
     }
 
+    @Input('trigger')
+    trigger!: string;
 
-    @Input('trigger') trigger!: string;
-
-    // Tooltip class
-    @Input('tooltip-class') set tooltipClassBackwardCompatibility(value: string) {
-        if (value) {
-            this._tooltipClass = value;
-        }
-    }
-    @Input('tooltipClass') set tooltipClass(value: string) {
+    @Input('tooltipClass')
+    set tooltipClass(value: string) {
         if (value) {
             this._tooltipClass = value;
         }
@@ -117,21 +92,29 @@ export class TooltipDirective {
         return this._tooltipClass;
     }
 
-    @Input('display') display!: boolean;
-    @Input('display-mobile') displayMobile!: boolean;
-    @Input('displayTouchscreen') displayTouchscreen!: boolean;
-    @Input('shadow') shadow!: boolean;
-    @Input('theme') theme!: "dark" | "light";
-    @Input('offset') offset!: number;
-    @Input('width') width!: string;
+    @Input('display')
+    display!: boolean;
 
-    // Max width
-    @Input('max-width') set maxWidthBackwardCompatibility(value: string) {
-        if (value) {
-            this._maxWidth = value;
-        }
-    }
-    @Input('maxWidth') set maxWidth(value: string) {
+    @Input('displayMobile')
+    displayMobile!: boolean;
+
+    @Input('displayTouchscreen')
+    displayTouchscreen!: boolean;
+
+    @Input('shadow')
+    shadow!: boolean;
+
+    @Input('theme')
+    theme!: "dark" | "light";
+
+    @Input('offset')
+    offset!: number;
+
+    @Input('width')
+    width!: string;
+
+    @Input('maxWidth')
+    set maxWidth(value: string) {
         if (value) {
             this._maxWidth = value;
         }
@@ -140,16 +123,8 @@ export class TooltipDirective {
         return this._maxWidth;
     }
 
-
-    @Input('id') id: any;
-
-    // Show delay
-    @Input('show-delay') set showDelayBackwardCompatibility(value: number) {
-        if (value) {
-            this._showDelay = value;
-        }
-    }
-    @Input('showDelay') set showDelay(value: number) {
+    @Input('showDelay')
+    set showDelay(value: number) {
         if (value) {
             this._showDelay = value;
         }
@@ -157,14 +132,9 @@ export class TooltipDirective {
     get showDelay() {
         return this._showDelay;
     }
-
-    // Hide delay
-    @Input('hide-delay') set hideDelayBackwardCompatibility(value: number) {
-        if (value) {
-            this._hideDelay = value;
-        }
-    }
-    @Input('hideDelay') set hideDelay(value: number) {
+    
+    @Input('hideDelay')
+    set hideDelay(value: number) {
         if (value) {
             this._hideDelay = value;
         }
@@ -173,39 +143,39 @@ export class TooltipDirective {
         return this._hideDelay;
     }
 
-    @Input('hideDelayAfterClick') hideDelayAfterClick!: number;
-    @Input('pointerEvents') pointerEvents!: 'auto' | 'none';
-    @Input('position') position!: {top: number, left: number};
+    @Input('hideDelayAfterClick')
+    hideDelayAfterClick!: number;
 
-    get isTooltipDestroyed() {
-        return this.componentRef && this.componentRef.hostView.destroyed;
+    @Input('pointerEvents')
+    pointerEvents!: 'auto' | 'none';
+
+    @Input('position')
+    position!: {top: number, left: number};
+
+
+    get isTooltipDestroyed(): boolean {        
+        return !!this.componentRef?.hostView?.destroyed;
     }
 
-    get destroyDelay() {
-        if (this._destroyDelay) {
-            return this._destroyDelay;
-        } else {
-            return Number(this.getHideDelay()) + Number(this.options['animationDuration']);
-        }
+    get destroyDelay(): number {
+        return this._destroyDelay ?? Number(this.getHideDelay()) + Number(this.options.animationDuration);
     }
+
     set destroyDelay(value: number) {
         this._destroyDelay = value;
     }
 
-    get tooltipPosition() {
-        if (this.options['position']) {
-            return this.options['position'];
-        } else {
-            return this.elementPosition;
-        }
+    get tooltipPosition(): any {
+        return this.options.position ?? this.elementPosition;
     }
 
-    @Output() events: EventEmitter < any > = new EventEmitter < any > ();
+    @Output()
+    events: EventEmitter<any> = new EventEmitter<any>();
 
     constructor(
-        @Optional() @Inject(TooltipOptionsService) private initOptions:any,
+        @Optional() @Inject(TooltipOptionsService) private initOptions: TooltipOptions,
         private elementRef: ElementRef,
-        private componentFactoryResolver: ComponentFactoryResolver,
+        private viewContainerRef: ViewContainerRef,
         private appRef: ApplicationRef,
         private injector: Injector) {}
 
@@ -222,7 +192,7 @@ export class TooltipDirective {
     @HostListener('focusout')
     @HostListener('mouseleave')
     onMouseLeave() {
-        if (this.options['trigger'] === 'hover') {
+        if (this.options.trigger === 'hover') {
             this.destroyTooltip();
         }
     }
@@ -236,45 +206,29 @@ export class TooltipDirective {
         this.show();
         this.hideAfterClickTimeoutId = window.setTimeout(() => {
             this.destroyTooltip();
-        }, this.options['hideDelayAfterClick'])
-    }
-
-    ngOnInit(): void {
+        }, this.options.hideDelayAfterClick)
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        this.initOptions = this.renameProperties(this.initOptions);
-        let changedOptions = this.getProperties(changes);
-        changedOptions = this.renameProperties(changedOptions);
-
+        const changedOptions = this.getProperties(changes);
         this.applyOptionsDefault(defaultOptions, changedOptions);
     }
 
-    ngOnDestroy(): void {
-        this.destroyTooltip({
-            fast: true
-        });
-
-        if (this.componentSubscribe) {
-            this.componentSubscribe.unsubscribe();
-        }
-    }
-
     getShowDelay() {
-        return this.options['showDelay'];
+        return this.options.showDelay;
     }
 
     getHideDelay() {
-        const hideDelay = this.options['hideDelay'];
-        const hideDelayTouchscreen = this.options['hideDelayTouchscreen'];
+        const hideDelay = this.options.hideDelay;
+        const hideDelayTouchscreen = this.options.hideDelayTouchscreen;
 
         return this.isTouchScreen ? hideDelayTouchscreen : hideDelay;
     }
 
     getProperties(changes: SimpleChanges){
-        let directiveProperties:any = {};
-        let customProperties:any = {};
-        let allProperties:any = {};
+        let directiveProperties: any = {};
+        let customProperties: any = {};
+        let allProperties: any = {};
 
         for (var prop in changes) {
             if (prop !== 'options' && prop !== 'tooltipValue'){
@@ -289,17 +243,6 @@ export class TooltipDirective {
         return allProperties;
     }
 
-    renameProperties(options:any) {
-        for (var prop in options) {
-            if (backwardCompatibilityOptions[prop]) {
-                options[backwardCompatibilityOptions[prop]] = options[prop];
-                delete options[prop];
-            }
-        }
-
-        return options;
-    }
-
     getElementPosition(): void {
         this.elementPosition = this.elementRef.nativeElement.getBoundingClientRect();
     }
@@ -309,7 +252,7 @@ export class TooltipDirective {
         this.getElementPosition();
 
         this.createTimeoutId = window.setTimeout(() => {
-            this.appendComponentToBody(TooltipComponent);
+            this.appendComponentToBody();
         }, this.getShowDelay());
 
         this.showTimeoutId = window.setTimeout(() => {
@@ -317,15 +260,13 @@ export class TooltipDirective {
         }, this.getShowDelay());
     }
 
-    destroyTooltip(options = {
-        fast: false
-    }): void {
+    destroyTooltip(destroyInstantly = false): void {
         this.clearTimeouts();
 
         if (this.isTooltipDestroyed == false) {
             this.hideTimeoutId = window.setTimeout(() => {
                 this.hideTooltip();
-            }, options.fast ? 0 : this.getHideDelay());
+            }, destroyInstantly ? 0 : this.getHideDelay());
 
             this.destroyTimeoutId = window.setTimeout(() => {
                 if (!this.componentRef || this.isTooltipDestroyed) {
@@ -338,13 +279,13 @@ export class TooltipDirective {
                     type: 'hidden', 
                     position: this.tooltipPosition
                 });
-            }, options.fast ? 0 : this.destroyDelay);
+            }, destroyInstantly ? 0 : this.destroyDelay);
         }
     }
 
     showTooltipElem(): void {
         this.clearTimeouts();
-        ( < AdComponent > this.componentRef.instance).show = true;
+        (<AdComponent> this.componentRef.instance).show = true;
         this.events.emit({
             type: 'show',
             position: this.tooltipPosition
@@ -355,61 +296,56 @@ export class TooltipDirective {
         if (!this.componentRef || this.isTooltipDestroyed) {
             return;
         }
-        ( < AdComponent > this.componentRef.instance).show = false;
+        (<AdComponent> this.componentRef.instance).show = false;
         this.events.emit({
             type: 'hide',
             position: this.tooltipPosition
         });
     }
 
-    appendComponentToBody(component: any, data: any = {}): void {
-        this.componentRef = this.componentFactoryResolver
-            .resolveComponentFactory(component)
-            .create(this.injector);
+    appendComponentToBody(): void {
+        // Create the component using the ViewContainerRef.
+        // This way the component is automatically added to the change detection cycle of the Angular application
+        this.componentRef = this.viewContainerRef.createComponent(TooltipComponent, { injector: this.injector });
 
-        ( < AdComponent > this.componentRef.instance).data = {
-            value: this.tooltipValue,
-            element: this.elementRef.nativeElement,
-            elementPosition: this.tooltipPosition,
-            options: this.options
-        }
-        this.appRef.attachView(this.componentRef.hostView);
-        const domElem = (this.componentRef.hostView as EmbeddedViewRef < any > ).rootNodes[0] as HTMLElement;
+        // Set the data property of the component instance.
+        (<AdComponent>this.componentRef.instance).data = {
+          value: this.tooltipValue,
+          element: this.elementRef.nativeElement,
+          elementPosition: this.tooltipPosition,
+          options: this.options
+        };
+      
+        // Get the DOM element from the component's view.
+        const domElem = (this.componentRef.location.nativeElement as HTMLElement);
+      
+        // Append the DOM element to the document body.
         document.body.appendChild(domElem);
-
-        this.componentSubscribe = ( < AdComponent > this.componentRef.instance).events.subscribe((event: any) => {
-            this.handleEvents(event);
-        });
+      
+        // Subscribe to events from the component.
+        this._subscriptions.add((<AdComponent>this.componentRef.instance).events.subscribe((event: any) => {
+          this.handleEvents(event);
+        }));
     }
 
+    // Clears all timeouts that exist:
     clearTimeouts(): void {
-        if (this.createTimeoutId) {
-            clearTimeout(this.createTimeoutId);
-        }
-
-        if (this.showTimeoutId) {
-            clearTimeout(this.showTimeoutId);
-        }
-
-        if (this.hideTimeoutId) {
-            clearTimeout(this.hideTimeoutId);
-        }
-
-        if (this.destroyTimeoutId) {
-            clearTimeout(this.destroyTimeoutId);
-        }
+        this.createTimeoutId && clearTimeout(this.createTimeoutId);
+        this.showTimeoutId && clearTimeout(this.showTimeoutId);
+        this.hideTimeoutId && clearTimeout(this.hideTimeoutId);
+        this.destroyTimeoutId && clearTimeout(this.destroyTimeoutId);
     }
 
     get isDisplayOnHover(): boolean {
-        if (this.options['display'] == false) {
+        if (this.options.display == false) {
             return false;
         }
 
-        if (this.options['displayTouchscreen'] == false && this.isTouchScreen) {
+        if (this.options.displayTouchscreen == false && this.isTouchScreen) {
             return false;
         }
 
-        if (this.options['trigger'] !== 'hover') {
+        if (this.options.trigger !== 'hover') {
             return false;
         }
 
@@ -417,15 +353,15 @@ export class TooltipDirective {
     }
 
     get isDisplayOnClick(): boolean {
-        if (this.options['display'] == false) {
+        if (this.options.display == false) {
             return false;
         }
 
-        if (this.options['displayTouchscreen'] == false && this.isTouchScreen) {
+        if (this.options.displayTouchscreen == false && this.isTouchScreen) {
             return false;
         }
 
-        if (this.options['trigger'] != 'click') {
+        if (this.options.trigger != 'click') {
             return false;
         }
 
@@ -448,8 +384,9 @@ export class TooltipDirective {
         return mq(query);
     }
 
-    applyOptionsDefault(defaultOptions:any, options:any): void {
-        this.options = Object.assign({}, defaultOptions, this.initOptions || {}, this.options, options);
+    applyOptionsDefault(defaultOptions: TooltipOptions, changedOptions: any): void {
+        // Merge default, initial, current, and user-specified options, with changedOptions having the highest priority:
+        this.options = Object.assign({}, defaultOptions, this.initOptions || {}, this.options, changedOptions);
     }
 
     handleEvents(event: any) {
@@ -468,12 +405,18 @@ export class TooltipDirective {
 
         if (!this.componentRef || this.isTooltipDestroyed) {
             this.createTooltip();
-        } else if (!this.isTooltipDestroyed) {
+        }
+        else if (!this.isTooltipDestroyed) {
             this.showTooltipElem();
         }
     }
 
     public hide() {
         this.destroyTooltip();
+    }
+
+    ngOnDestroy(): void {
+        this.destroyTooltip(true);
+        this._subscriptions?.unsubscribe();        
     }
 }

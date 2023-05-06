@@ -1,6 +1,6 @@
 # Tooltip for Angular
 
-**Please note:** This is an **Angular 16** compatible fork of [ng2-tooltip-directive](https://www.npmjs.com/package/ng2-tooltip-directive).
+**Please note:** This is a completely revised, **Angular 16** compatible fork of [ng2-tooltip-directive](https://www.npmjs.com/package/ng2-tooltip-directive).
 
 The tooltip is a pop-up tip that appears when you hover over an item or click on it.
 
@@ -101,7 +101,7 @@ import { MyDefaultTooltipOptions } from './my-default-options';
 | trigger          | "hover", "click"                    | "hover" | Specifies how the tooltip is triggered. Control the closing time with "hide-delay". |
 | tooltipClass    | string                              |         | Classes to be passed to the tooltip.        |
 | animationDuration | number                            | 300     | The duration controls how long the animation takes to run from start to finish. |
-| theme            | "dark", "light"                     | "dark"  | Theme of tooltip background and text.       |
+| theme            | "white-blue", "dark", "light"       | "white-blue" | Theme of tooltip background and text. |
 | shadow           | boolean                             | true    | Shadow of the tooltip.                      |
 | offset           | number                              | 8       | Offset the tooltip relative to the item.    |
 | width            | number                              | undefined | Width of the tooltip.                     |
@@ -134,9 +134,3 @@ If you specified the directive options, they will be taken into account when cal
 ## Author services
 
 Are you interested in this library but lacks features? [Write to the author](https://github.com/drozhzhin-n-e), he can do it for you.
-
-## Sponsors
-
-We use Browserstack for cross-browser testing.
-
-[![Browserstack](http://ivylab.space/assets/img/browserstack-logo.png)](http://browserstack.com/)
