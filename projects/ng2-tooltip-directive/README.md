@@ -1,6 +1,6 @@
 # Tooltip for Angular
 
-**Please note:** This is an **Angular 15** compatible fork of [ng2-tooltip-directive](https://www.npmjs.com/package/ng2-tooltip-directive).
+**Please note:** This is an **Angular 16** compatible fork of [ng2-tooltip-directive](https://www.npmjs.com/package/ng2-tooltip-directive).
 
 The tooltip is a pop-up tip that appears when you hover over an item or click on it.
 
