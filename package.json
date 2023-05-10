@@ -1,6 +1,6 @@
 {
   "name": "tooltip-ng12-app",
-  "version": "16.0.0",
+  "version": "16.1.2",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
