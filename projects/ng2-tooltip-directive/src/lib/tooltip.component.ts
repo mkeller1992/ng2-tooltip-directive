@@ -1,22 +1,29 @@
-import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, Renderer2 } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, Input, OnDestroy, OnInit, Renderer2, TemplateRef } from '@angular/core';
+import { SafeHtml } from '@angular/platform-browser';
+import { ContentType } from 'ng2-tooltip-directive';
+import { filter, fromEvent, Subject, takeUntil, tap } from 'rxjs';
 import { defaultOptions } from './default-options.const';
+import { TooltipDto } from './tooltip.dto';
 import { TooltipOptions } from './options.interface';
+import { Placement } from './placement.type';
 
 @Component({
     selector: 'tooltip',
     templateUrl: './tooltip.component.html',
-    host: {
-        'class': 'tooltip'
-    },
     styleUrls: ['./tooltip.component.scss']
 })
 
-export class TooltipComponent {
-    _show: boolean = false;
+export class TooltipComponent implements OnInit, OnDestroy {
+
     events = new EventEmitter();
 
-    @Input() data: any;
+    // The observable below will inform error-tooltip-directive when user clicked on tooltip:
+    private userClickOnTooltipSubject = new Subject<void>();
+    userClickOnTooltip$ = this.userClickOnTooltipSubject.asObservable();    
 
+    destroy$ = new Subject<void>();
+
+	@HostBinding('class.tooltip') tooltipClass = true;
     @HostBinding('style.top') hostStyleTop!: string;
     @HostBinding('style.left') hostStyleLeft!: string;
     @HostBinding('style.z-index') hostStyleZIndex!: number;
@@ -25,196 +32,230 @@ export class TooltipComponent {
     @HostBinding('style.max-width') hostStyleMaxWidth!: string;
     @HostBinding('style.pointer-events') hostStylePointerEvents!: string;
     @HostBinding('class.tooltip-show') hostClassShow!: boolean;
+    @HostBinding('class.tooltip-hide') hostClassHide!: boolean;
     @HostBinding('class.tooltip-shadow') hostClassShadow!: boolean;
     @HostBinding('class.tooltip-light') hostClassLight!: boolean;
-    @HostBinding('class.tooltip-white-blue') hostClassWhiteBlue!: boolean;    
+    @HostBinding('class.tooltip-white-blue') hostClassWhiteBlue!: boolean;
 
-    @HostListener('transitionend', ['$event'])
-    transitionEnd(event:any) {
-        if (this.show) {
-            this.events.emit({
-                type: 'shown'
-            });
-        }
-    }
 
-    @Input() set show(value: boolean) {
-        if (value) {
-            this.setPosition();
-        }
-        this._show = this.hostClassShow = value;
-    }
-    get show(): boolean {
-        return this._show;
-    }
+    tooltipStr!: string;
+    tooltipHtml!: SafeHtml;
+    tooltipTemplate!: TemplateRef<any>;
 
-    get isLightTheme() {
-        return this.options.theme === 'light' || this.options.theme === 'white-blue';
-    }
+    currentContentType!: ContentType;
+    isLightTheme!: boolean;
+    originalPlacement!: Placement; // placement defined by user
+    autoPlacement!: boolean;
+    hostElement!: any;
+    hostElementPosition!: { top: number, left: number } | DOMRect;
+    tooltipOffset!: number;
 
-    get placement() {
-        return this.data.options.placement;
-    }
+    currentPlacement: Placement | undefined; 
 
-    get autoPlacement() {
-        return this.data.options.autoPlacement;
-    }
-
-    get element() {
-        return this.data.element;
-    }
-
-    get elementPosition() {
-        return this.data.elementPosition;
-    }
-
-    get options(): TooltipOptions {
-        return this.data.options;
-    }
-
-    get value() {
-        return this.data.value;
-    }
-
-    get tooltipOffset(): number {
-        return Number(this.data.options.offset);
-    }
-
-    constructor(private elementRef: ElementRef, private renderer: Renderer2) {}
+    constructor(private elementRef: ElementRef,
+                private renderer: Renderer2) {}
 
     ngOnInit() {
-        this.setCustomClass();
-        this.setStyles();
+        this.listenToTransitionEnd();
+    }
+    
+    /* Methods that are invoked by tooltip.directive.ts */
+
+    showTooltip(config: TooltipDto) {
+        this.setTooltipProperties(config);
+        // Set tooltip visible:
+    	this.hostClassShow = true;
+    	this.hostClassHide = false;
+    	// 'setTimeout()' prevents the tooltip from 'jumping around':
+    	setTimeout(() => this.setPosition());
+    }
+
+    hideTooltip() {
+    	this.hostClassShow = false;
+    	this.hostClassHide = true;
     }
 
     setPosition(): void {
+    	const allPlacements: Placement[] = [ 'bottom-left', 'bottom', 'top-left', 'left', 'top', 'right' ];
 
-        if (this.setHostStyle(this.placement)) {
-            this.setPlacementClass(this.placement);
-            return;
-        } else {
-            /* Is tooltip outside the visible area */
-            const placements = ['top', 'right', 'bottom', 'left'];
-            let isPlacementSet;
+    	if (this.setHostStyle(this.originalPlacement)) {
+    		this.removeAllPlacementClasses(allPlacements);
+    		this.setPlacementClass(this.originalPlacement);
+    		return;
+    	}
+    	else {
+    		/* Is tooltip outside the visible area */
+    		const currentPlacement = this.currentPlacement ?? this.originalPlacement;
+    		let isPlacementSet = false;
 
-            for (const placement of placements) {
-                if (this.setHostStyle(placement)) {
-                    this.setPlacementClass(placement);
-                    isPlacementSet = true;
-                    return;
-                }
-            }
+    		for (const placement of allPlacements) {
+    			if (this.setHostStyle(placement)) {
+    				this.removeAllPlacementClasses(allPlacements);
+    				this.setPlacementClass(placement);
+    				isPlacementSet = true;
+    				return;
+    			}
+    		}
 
-            /* Set original placement */
-            if (!isPlacementSet) {
-                this.setHostStyle(this.placement, true);
-                this.setPlacementClass(this.placement);
-            }
-        }
+    		/* Set original placement */
+    		if (!isPlacementSet) {
+    			this.setHostStyle(currentPlacement, true);
+    			this.setPlacementClass(currentPlacement);
+    		}
+    	}
     }
 
+    /* Methods that get invoked by html */
 
-    setPlacementClass(placement: string): void {
-        this.renderer.addClass(this.elementRef.nativeElement, 'tooltip-' + placement);
+    handleTooltipClick() {
+    	this.userClickOnTooltipSubject.next();
     }
 
-    setHostStyle(placement: string, disableAutoPlacement: boolean = false): boolean {
-        const isSvg = this.element instanceof SVGElement;
-        const tooltip = this.elementRef.nativeElement;
-        const isCustomPosition = !this.elementPosition.right;
-
-        let elementHeight = isSvg ? this.element.getBoundingClientRect().height : this.element.offsetHeight;
-        let elementWidth = isSvg ? this.element.getBoundingClientRect().width : this.element.offsetWidth;
-        const tooltipHeight = tooltip.clientHeight;
-        const tooltipWidth = tooltip.clientWidth;
-        const scrollY = window.pageYOffset;
-
-        if (isCustomPosition) {
-            elementHeight = 0;
-            elementWidth = 0;
-        }
-
-        let topStyle;
-        let leftStyle;
-
-        if (placement === 'top') {
-            topStyle = (this.elementPosition.top + scrollY) - (tooltipHeight + this.tooltipOffset);
-        }
-
-        if (placement === 'bottom') {
-            topStyle = (this.elementPosition.top + scrollY) + elementHeight + this.tooltipOffset;
-        }
-
-        if (placement === 'top' || placement === 'bottom') {
-            leftStyle = (this.elementPosition.left + elementWidth / 2) - tooltipWidth / 2;
-        }
-
-        if (placement === 'left') {
-            leftStyle = this.elementPosition.left - tooltipWidth - this.tooltipOffset;
-        }
-
-        if (placement === 'right') {
-            leftStyle = this.elementPosition.left + elementWidth + this.tooltipOffset;
-        }
-
-        if (placement === 'left' || placement === 'right') {
-            topStyle = (this.elementPosition.top + scrollY) + elementHeight / 2 - tooltip.clientHeight / 2;
-        }
-
-        /* Is tooltip outside the visible area */
-        if (this.autoPlacement && !disableAutoPlacement) {
-            const topEdge = topStyle;
-            const bottomEdge = topStyle + tooltipHeight;
-            const leftEdge = leftStyle;
-            const rightEdge = leftStyle + tooltipWidth;
-            const bodyHeight = window.innerHeight + scrollY;
-            const bodyWidth = document.body.clientWidth;
-
-            if (topEdge < 0 || bottomEdge > bodyHeight || leftEdge < 0 || rightEdge > bodyWidth) {
-                return false;
-            }
-        }
-
-        this.hostStyleTop = topStyle + 'px';
-        this.hostStyleLeft = leftStyle + 'px';
-        return true;
+    private listenToTransitionEnd() {
+    	fromEvent(this.elementRef.nativeElement, 'transitionend')
+    		.pipe(
+    			filter(() => this.hostClassShow),
+    			tap(() => this.events.emit({ type: 'shown' })),
+    			takeUntil(this.destroy$),
+    		)
+    		.subscribe();
     }
 
-    setZIndex(): void {
-        if (this.options['zIndex'] !== 0) {
-            this.hostStyleZIndex = this.options.zIndex ?? defaultOptions.zIndex ?? 0;
-        }
+    private setTooltipProperties(config: TooltipDto) {
+        this.currentContentType = config.options.contentType ?? 'string';
+        this.tooltipStr = this.currentContentType === 'string' ? config.tooltipStr : '';
+        this.tooltipHtml = this.currentContentType === 'html' ? config.tooltipHtml : '';
+        this.tooltipTemplate = this.currentContentType === 'template' ? config.tooltipTemplate : {} as TemplateRef<any>;
+
+        this.isLightTheme = config.options.theme === 'light' || config.options.theme === 'white-blue';
+        this.originalPlacement = config.options.placement!;
+        this.autoPlacement = config.options.autoPlacement!;
+        this.hostElement = config.hostElement;
+        this.hostElementPosition = config.hostElementPosition;
+        this.tooltipOffset = Number(config.options.offset);
+        
+        this.setCustomClass(config.options);
+        this.setZIndex(config.options);
+        this.setPointerEvents(config.options);
+        this.setAnimationDuration(config.options);
+        this.setStyles(config.options);
     }
 
-    setPointerEvents(): void {
-        if (this.options['pointerEvents']) {
-            this.hostStylePointerEvents = this.options['pointerEvents'];
-        }
+    private setPlacementClass(placement: Placement | undefined): void {
+    	this.currentPlacement = placement;
+    	this.renderer.addClass(this.elementRef.nativeElement, `tooltip-${placement ?? ''}`);
     }
 
-    setCustomClass(){
-        if (this.options['tooltipClass']) {
-            this.options['tooltipClass'].split(' ').forEach((className:any) => {
+    private removeAllPlacementClasses(placements: Placement[]): void {
+    	placements.forEach(placement => {
+    		this.renderer.removeClass(this.elementRef.nativeElement, `tooltip-${placement}`);
+    	});
+    }
+
+    private setHostStyle(placement: Placement | undefined, disableAutoPlacement = false): boolean {
+    	const isFormCtrlSVG = this.hostElement instanceof SVGElement;
+    	const tooltip = this.elementRef.nativeElement;
+    	// In case the user passed a custom position, the object would just contain {top: number, left: number}
+    	const isCustomPosition = !(this.hostElementPosition instanceof DOMRect);
+
+    	let formControlHeight = isFormCtrlSVG ? this.hostElement.getBoundingClientRect().height : this.hostElement.offsetHeight;
+    	let formControlWidth = isFormCtrlSVG ? this.hostElement.getBoundingClientRect().width : this.hostElement.offsetWidth;
+    	const tooltipHeight = tooltip.clientHeight;
+    	const tooltipWidth = tooltip.clientWidth;
+    	const scrollY = window.scrollY;
+
+    	if (isCustomPosition) {
+    		formControlHeight = 0;
+    		formControlWidth = 0;
+    	}
+
+    	let topStyle;
+    	let leftStyle;
+
+    	if (placement === 'top' || placement === 'top-left') {
+    		topStyle = (this.hostElementPosition.top + scrollY) - (tooltipHeight + this.tooltipOffset);
+    	}
+
+    	if (placement === 'bottom' || placement === 'bottom-left') {
+    		topStyle = (this.hostElementPosition.top + scrollY) + formControlHeight + this.tooltipOffset;
+    	}
+
+    	if (placement === 'top' || placement === 'bottom') {
+    		leftStyle = (this.hostElementPosition.left + formControlWidth / 2) - tooltipWidth / 2;
+    	}
+
+    	if (placement === 'bottom-left' || placement === 'top-left') {
+    		leftStyle = this.hostElementPosition.left;
+    	}
+
+    	if (placement === 'left') {
+    		leftStyle = this.hostElementPosition.left - tooltipWidth - this.tooltipOffset;
+    	}
+
+    	if (placement === 'right') {
+    		leftStyle = this.hostElementPosition.left + formControlWidth + this.tooltipOffset;
+    	}
+
+    	if (placement === 'left' || placement === 'right') {
+    		topStyle = (this.hostElementPosition.top + scrollY) + formControlHeight / 2 - tooltip.clientHeight / 2;
+    	}
+
+    	/* Is tooltip outside the visible area */
+    	if (this.autoPlacement && !disableAutoPlacement) {
+    		const topEdge = topStyle;
+    		const bottomEdge = topStyle + tooltipHeight;
+    		const leftEdge = leftStyle;
+    		const rightEdge = leftStyle + tooltipWidth;
+    		const bodyHeight = window.innerHeight + scrollY;
+    		const bodyWidth = document.body.clientWidth;
+
+    		if (topEdge < 0 || bottomEdge > bodyHeight || leftEdge < 0 || rightEdge > bodyWidth) {
+    			return false;
+    		}
+    	}
+
+    	this.hostStyleTop = `${topStyle}px`;
+    	this.hostStyleLeft = `${leftStyle}px`;
+
+    	return true;
+    }
+
+    private setCustomClass(options: TooltipOptions){
+        if (options.tooltipClass) {
+            options.tooltipClass.split(' ').forEach((className:any) => {
                 this.renderer.addClass(this.elementRef.nativeElement, className);
             });
         }
     }
 
-    setAnimationDuration() {
-        if (Number(this.options['animationDuration']) != this.options['animationDurationDefault']) {
-            this.hostStyleTransition = 'opacity ' + this.options['animationDuration'] + 'ms';
+    private setZIndex(options: TooltipOptions): void {
+        if (options.zIndex !== 0) {
+            this.hostStyleZIndex = options.zIndex ?? defaultOptions.zIndex ?? 0;
         }
     }
 
-    setStyles() {
-        this.setZIndex();
-        this.setPointerEvents();
-        this.setAnimationDuration();
+    private setPointerEvents(options: TooltipOptions): void {
+        if (options.pointerEvents) {
+            this.hostStylePointerEvents = options.pointerEvents;
+        }
+    }
 
-        this.hostClassShadow = this.options.shadow ?? defaultOptions.shadow ?? true;
-        this.hostClassLight = this.options.theme === 'light' || this.options.theme === 'white-blue';
-        this.hostClassWhiteBlue = this.options.theme === 'white-blue';
-        this.hostStyleMaxWidth = this.options.maxWidth ?? defaultOptions.maxWidth ?? '';
-        this.hostStyleWidth = this.options['width'] ? this.options['width'] : '';
+    private setAnimationDuration(options: TooltipOptions) {
+        if (Number(options.animationDuration) != options.animationDurationDefault) {
+            this.hostStyleTransition = `opacity ${options.animationDuration}ms`;
+        }
+    }
+
+    private setStyles(options: TooltipOptions) {
+        this.hostClassShadow = options.shadow ?? true;
+        this.hostClassLight = options.theme === 'light' || options.theme === 'white-blue';
+        this.hostClassWhiteBlue = options.theme === 'white-blue';
+        this.hostStyleMaxWidth = options.maxWidth ?? '';
+        this.hostStyleWidth = options.width ? options.width : '';
+    }
+
+    ngOnDestroy(): void {
+    	this.destroy$.next();
+    	this.destroy$.unsubscribe();
     }
 }

@@ -1,8 +1,9 @@
+import { Placement } from "./placement.type";
 import { ContentType } from "./tooltip.directive";
 
 export interface TooltipOptions {
     id?: string | number;
-    placement?: string;
+    placement?: Placement;
     autoPlacement?: boolean;
     contentType?: ContentType;
     showDelay?: number;
