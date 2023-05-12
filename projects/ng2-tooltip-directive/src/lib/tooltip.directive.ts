@@ -1,6 +1,6 @@
-import { ApplicationRef, ComponentRef, Directive, ElementRef, EventEmitter, HostListener, Inject, Injector, Input, OnDestroy, OnInit, Optional, Output, SimpleChanges, TemplateRef, ViewContainerRef } from '@angular/core';
+import { ApplicationRef, ComponentRef, Directive, ElementRef, EventEmitter, HostListener, Inject, Injector, Input, OnDestroy, OnInit, Optional, Output, TemplateRef, ViewContainerRef } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
-import { concatMap, delay, filter, first, fromEvent, of, race, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { filter, first, fromEvent, race, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { defaultOptions } from './default-options.const';
 import { TooltipOptions } from './options.interface';
 import { TooltipOptionsService } from './options.service';
@@ -17,7 +17,7 @@ export type ContentType = "string" | "html" | "template";
 export class TooltipDirective implements OnInit, OnDestroy {
 
 	// A merge of all options that were passed in various ways:
-	private finalOptions!: TooltipOptions;
+	private mergedOptions!: TooltipOptions;
 
     // Will contain all options collected from the @Inputs
 	private collectedOptions: Partial<TooltipOptions> = {};
@@ -168,26 +168,26 @@ export class TooltipDirective implements OnInit, OnDestroy {
     }
 
 	private get destroyDelay(): number {
-		return Number(this.finalOptions.hideDelay) + Number(this.finalOptions.animationDuration);
+		return Number(this.mergedOptions.hideDelay) + Number(this.mergedOptions.animationDuration);
 	}
 
     get hostElementPosition(): { top: number, left: number } | DOMRect {
-        return this.finalOptions.position ?? this.hostElementRef.nativeElement.getBoundingClientRect();
+        return this.mergedOptions.position ?? this.hostElementRef.nativeElement.getBoundingClientRect();
     }
 
     get isDisplayOnHover(): boolean {
-        if (this.finalOptions.display == false ||
-            (this.finalOptions.displayTouchscreen == false && this.isTouchScreen) ||
-            this.finalOptions.trigger !== 'hover') {
+        if (this.mergedOptions.display == false ||
+            (this.mergedOptions.displayTouchscreen == false && this.isTouchScreen) ||
+            this.mergedOptions.trigger !== 'hover') {
             return false;
         }
         return true;
     }
 
     get isDisplayOnClick(): boolean {
-        if (this.finalOptions.display == false ||
-            (this.finalOptions.displayTouchscreen == false && this.isTouchScreen) ||
-            this.finalOptions.trigger != 'click') {
+        if (this.mergedOptions.display == false ||
+            (this.mergedOptions.displayTouchscreen == false && this.isTouchScreen) ||
+            this.mergedOptions.trigger != 'click') {
             return false;
         }
         return true;
@@ -223,9 +223,9 @@ export class TooltipDirective implements OnInit, OnDestroy {
     /** Public User-Methods **/
 
 	public show() {
-		if ((this.finalOptions.contentType === 'string' && !this.tooltipStr) ||
-            (this.finalOptions.contentType === 'html' && !this.tooltipHtml) ||
-            (this.finalOptions.contentType === 'template' && !this.tooltipTemplate)) {
+		if ((this.mergedOptions.contentType === 'string' && !this.tooltipStr) ||
+            (this.mergedOptions.contentType === 'html' && !this.tooltipHtml) ||
+            (this.mergedOptions.contentType === 'template' && !this.tooltipTemplate)) {
             return;
         }
 
@@ -257,7 +257,7 @@ export class TooltipDirective implements OnInit, OnDestroy {
     @HostListener('focusout')
     @HostListener('mouseleave')
     onMouseLeave() {
-        if (this.finalOptions.trigger === 'hover') {
+        if (this.mergedOptions.trigger === 'hover') {
             this.destroyTooltip();
         }
     }
@@ -267,7 +267,7 @@ export class TooltipDirective implements OnInit, OnDestroy {
         this.show();
         this.hideAfterClickTimeoutId = window.setTimeout(() => {
             this.destroyTooltip();
-        }, this.finalOptions.hideDelayAfterClick)
+        }, this.mergedOptions.hideDelayAfterClick)
     }
 
 	private listenToClickOnHostElement() {
@@ -276,9 +276,11 @@ export class TooltipDirective implements OnInit, OnDestroy {
             .pipe(
                   filter(() => !!this.refToTooltipComponent?.hostView),
                   tap(() => this.show()),
-                  // Make delay cancellable:
+                  // Cancel pipe when further clicks on the host-element are made:
                   switchMap(() =>
-                    race(timer(this.finalOptions.hideDelayAfterClick ?? 0), this.clearTimeouts$),
+                    // Make delay cancellable:                
+                    // Emits when either hideDelayAfterClick is over or clearTimeouts$ is called:
+                    race(timer(this.mergedOptions.hideDelayAfterClick ?? 0), this.clearTimeouts$),
                   ),
                   tap(() => this.hide()),
                   takeUntil(this.destroy$)
@@ -287,18 +289,13 @@ export class TooltipDirective implements OnInit, OnDestroy {
         }
 	}
 
-    ngOnChanges(changes: SimpleChanges) {
-        const changedOptions = this.getProperties(changes);
-        this.applyOptionsDefault(defaultOptions, changedOptions);
-    }
-
     getShowDelay() {
-        return this.finalOptions.showDelay;
+        return this.mergedOptions.showDelay;
     }
 
     getHideDelay() {
-        const hideDelay = this.finalOptions.hideDelay;
-        const hideDelayTouchscreen = this.finalOptions.hideDelayTouchscreen;
+        const hideDelay = this.mergedOptions.hideDelay;
+        const hideDelayTouchscreen = this.mergedOptions.hideDelayTouchscreen;
 
         return this.isTouchScreen ? hideDelayTouchscreen : hideDelay;
     }
@@ -307,7 +304,7 @@ export class TooltipDirective implements OnInit, OnDestroy {
 		// Stop all ongoing processes:
 		this.clearTimeouts$.next();
 
-		timer(this.finalOptions.showDelay ?? 0)
+		timer(this.mergedOptions.showDelay ?? 0)
 			.pipe(
 				first(),
 		  		takeUntil(this.destroy$ || this.clearTimeouts$),
@@ -366,7 +363,7 @@ export class TooltipDirective implements OnInit, OnDestroy {
     	if (this.isTooltipVisible && !this.isTooltipComponentDestroyed) {
 			this.events.emit({ type: 'hide', position: this.hostElementPosition });
 
-			timer(hideInstantly ? 0 : this.finalOptions.hideDelay ?? 0)
+			timer(hideInstantly ? 0 : this.mergedOptions.hideDelay ?? 0)
 				.pipe(
 					first(),
 					takeUntil(this.destroy$ || this.clearTimeouts$),
