@@ -8,6 +8,7 @@ export const defaultOptions: TooltipOptions = {
 	showDelay: 0,
 	hideDelay: 300,
 	hideDelayTouchscreen: 0,
+	hideDelayAfterClick: undefined,
 	zIndex: 0,
 	animationDuration: 300,
 	animationDurationDefault: 300,
@@ -19,6 +20,5 @@ export const defaultOptions: TooltipOptions = {
 	shadow: true,
 	theme: 'white-blue',
 	offset: 8,
-	maxWidth: '',
-	hideDelayAfterClick: 2000
+	maxWidth: ''
 }

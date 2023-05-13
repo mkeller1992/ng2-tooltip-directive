@@ -1,9 +1,10 @@
-import { ApplicationRef, ComponentRef, Directive, ElementRef, EventEmitter, HostListener, Inject, Injector, Input, OnDestroy, OnInit, Optional, Output, TemplateRef, ViewContainerRef } from '@angular/core';
+import { ApplicationRef, ComponentRef, Directive, ElementRef, EventEmitter, HostListener, Inject, Injector, Input, OnChanges, OnDestroy, OnInit, Optional, Output, SimpleChanges, TemplateRef, ViewContainerRef } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
-import { filter, first, fromEvent, race, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { auditTime, EMPTY, exhaustMap, filter, first, fromEvent, merge, race, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { defaultOptions } from './default-options.const';
 import { TooltipOptions } from './options.interface';
 import { TooltipOptionsService } from './options.service';
+import { Placement } from './placement.type';
 import { TooltipComponent } from './tooltip.component';
 import { TooltipDto } from './tooltip.dto';
 
@@ -14,7 +15,7 @@ export type ContentType = "string" | "html" | "template";
     exportAs: 'tooltip',
 })
 
-export class TooltipDirective implements OnInit, OnDestroy {
+export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
 
 	// A merge of all options that were passed in various ways:
 	private mergedOptions!: TooltipOptions;
@@ -22,24 +23,10 @@ export class TooltipDirective implements OnInit, OnDestroy {
     // Will contain all options collected from the @Inputs
 	private collectedOptions: Partial<TooltipOptions> = {};
 
-    hideTimeoutId!: number;
-    destroyTimeoutId!: number;
-    hideAfterClickTimeoutId!: number;
-    createTimeoutId!: number;
-    showTimeoutId!: number;
-    
-    private _showDelay!: number;
-    private _hideDelay!: number;
-    private _tooltipClass!: string;
-    private _animationDuration!: number;
-    private _maxWidth!: string;
-
-    @Input()
-    id: any;
-
     // Pass options as a single object:
     @Input()
 	options: TooltipOptions = {};
+
 
     @Input()
     tooltipStr!: string;
@@ -50,104 +37,116 @@ export class TooltipDirective implements OnInit, OnDestroy {
     @Input()
     tooltipTemplate!: TemplateRef<any>;
 
-    @Input()
-    contentType: ContentType = 'string';
+
+	@Input()
+	set id(val: string | number) {
+	  	this.collectedOptions.id = val;
+	}
 
     @Input()
-    placement!: string;
-
-
-    @Input()
-    autoPlacement!: boolean;
-
-    @Input()
-    hideDelayTouchscreen!: number;
-
-    @Input()
-    zIndex!: number;
-
-    @Input()
-    set animationDuration(value: number) {
-        if (value) {
-            this._animationDuration = value;
-        }
-    }
-    get animationDuration() {
-        return this._animationDuration;
+    set contentType(val: ContentType) {
+        this.collectedOptions.contentType = val;
     }
 
-    @Input()
-    trigger!: string;
+	@Input()
+	set placement(val: Placement) {
+	  	this.collectedOptions.placement = val;
+	}
+
+	@Input()
+	set autoPlacement(val: boolean) {
+	 	 this.collectedOptions.autoPlacement = val;
+	}
 
     @Input()
-    set tooltipClass(value: string) {
-        if (value) {
-            this._tooltipClass = value;
-        }
+    set hideDelayTouchscreen(val: number) {
+        this.collectedOptions.hideDelayTouchscreen = val;
     }
-    get tooltipClass() {
-        return this._tooltipClass;
+
+	@Input()
+	set zIndex(val: number) {
+	  	this.collectedOptions.zIndex = val;
+	}
+
+    @Input()
+    set animationDuration(val: number) {
+        this.collectedOptions.animationDuration = val;
     }
 
     @Input()
-    display!: boolean;
-
-    @Input()
-    displayMobile!: boolean;
-
-    @Input()
-    displayTouchscreen!: boolean;
-
-    @Input()
-    shadow!: boolean;
-
-    @Input()
-    theme!: "dark" | "light";
-
-    @Input()
-    offset!: number;
-
-    @Input()
-    width!: string;
-
-    @Input()
-    set maxWidth(value: string) {
-        if (value) {
-            this._maxWidth = value;
-        }
-    }
-    get maxWidth() {
-        return this._maxWidth;
+    set trigger(val: 'hover' | 'click') {
+        this.collectedOptions.trigger = val;
     }
 
     @Input()
-    set showDelay(value: number) {
-        if (value) {
-            this._showDelay = value;
-        }
+    set tooltipClass(val: string) {
+        this.collectedOptions.tooltipClass = val;
     }
-    get showDelay() {
-        return this._showDelay;
+
+    @Input()
+    set display(val: boolean) {
+        this.collectedOptions.display = val;
+    }
+
+    @Input()
+    set displayMobile(val: boolean) {
+        this.collectedOptions.displayMobile = val;
+    }
+
+    @Input()
+    set displayTouchscreen(val: boolean) {
+        this.collectedOptions.displayTouchscreen = val;
+    }
+
+    @Input()
+    set shadow(val: boolean) {
+        this.collectedOptions.shadow = val;
+    }
+
+    @Input()
+    set theme(val: 'dark' | 'light' | 'white-blue') {
+        this.collectedOptions.theme = val;
+    }
+
+    @Input()
+    set offset(val: number) {
+        this.collectedOptions.offset = val;
+    }
+
+    @Input()
+    set width(val: string) {
+        this.collectedOptions.width = val;
+    }
+
+    @Input()
+    set maxWidth(val: string) {
+        this.collectedOptions.maxWidth = val;
+    }
+
+    @Input()
+    set showDelay(val: number) {
+        this.collectedOptions.showDelay = val;
     }
     
     @Input()
-    set hideDelay(value: number) {
-        if (value) {
-            this._hideDelay = value;
-        }
-    }
-    get hideDelay() {
-        return this._hideDelay;
+    set hideDelay(val: number) {
+        this.collectedOptions.hideDelay = val;
     }
 
     @Input()
-    hideDelayAfterClick!: number;
+    set hideDelayAfterClick(val: number) {
+        this.collectedOptions.hideDelayAfterClick = val;
+    }
 
     @Input()
-    pointerEvents!: 'auto' | 'none';
+    set pointerEvents(val: 'auto' | 'none') {
+        this.collectedOptions.pointerEvents = val;
+    }
 
-    @Input()
-    position!: {top: number, left: number};
+	@Input()
+	set position(val: { top: number; left: number }) {
+	 	this.collectedOptions.position = val;
+	}
 
 
     @Output()
@@ -159,41 +158,32 @@ export class TooltipDirective implements OnInit, OnDestroy {
 
     private isTooltipVisible = false;
 
-	private get isTooltipCreated(): boolean {
-		return !!this.tooltipComponent;
-	}
-
     get isTooltipComponentDestroyed(): boolean {        
 		return !this.refToTooltipComponent?.location.nativeElement.isConnected;
     }
 
-	private get destroyDelay(): number {
-		return Number(this.mergedOptions.hideDelay) + Number(this.mergedOptions.animationDuration);
-	}
+    get calculatedHideDelay(): number {
+        return this.isTouchScreen && this.mergedOptions.hideDelayTouchscreen ?
+               this.mergedOptions.hideDelayTouchscreen : (this.mergedOptions.hideDelay ?? 0);
+    }
 
     get hostElementPosition(): { top: number, left: number } | DOMRect {
         return this.mergedOptions.position ?? this.hostElementRef.nativeElement.getBoundingClientRect();
     }
 
     get isDisplayOnHover(): boolean {
-        if (this.mergedOptions.display == false ||
-            (this.mergedOptions.displayTouchscreen == false && this.isTouchScreen) ||
-            this.mergedOptions.trigger !== 'hover') {
-            return false;
-        }
-        return true;
+        return this.mergedOptions.display == true &&
+               this.mergedOptions.trigger === 'hover' &&
+               !(this.isTouchScreen && this.mergedOptions.displayTouchscreen);
     }
 
     get isDisplayOnClick(): boolean {
-        if (this.mergedOptions.display == false ||
-            (this.mergedOptions.displayTouchscreen == false && this.isTouchScreen) ||
-            this.mergedOptions.trigger != 'click') {
-            return false;
-        }
-        return true;
+        return this.mergedOptions.display == true &&
+               (this.mergedOptions.trigger === 'click' || (this.mergedOptions.displayTouchscreen! && this.isTouchScreen));
     }
 
     get isTouchScreen() {
+        console.warn('is touchscreen:', ('ontouchstart' in window) || window.matchMedia('(any-pointer: coarse)').matches);
         return ('ontouchstart' in window) || window.matchMedia('(any-pointer: coarse)').matches;
     }
 
@@ -208,99 +198,154 @@ export class TooltipDirective implements OnInit, OnDestroy {
         private appRef: ApplicationRef,
         private injector: Injector) {}
 
+
     ngOnInit(): void {
+
+        console.warn('On init');
+
 		// On click on input-field: Hide tooltip
 		this.listenToClickOnHostElement();
 
-		// The tooltip-position needs to be adjusted when user scrolls or resizes the window:
-		this.listenToScrollAndResizeEvents();
+        this.listenToMouseEnterAndFocusIn();
+        this.listenToMouseLeaveAndFocusOut();
 
-		// Update tooltip 'on submit':
-		this.updateTooltipVisibilityOnSubmit();
+		// The tooltip-position needs to be adjusted when user scrolls or resizes the window:
+		this.listenToScrollAndResizeEvents();        
     }
 
+    ngOnChanges(changes: SimpleChanges) {
+        // Map tooltip options:
+        this.mergedOptions = this.getMergedTooltipOptions();
+        console.warn('On changes', this.mergedOptions);
+    }
 
     /** Public User-Methods **/
 
 	public show() {
-		if ((this.mergedOptions.contentType === 'string' && !this.tooltipStr) ||
-            (this.mergedOptions.contentType === 'html' && !this.tooltipHtml) ||
-            (this.mergedOptions.contentType === 'template' && !this.tooltipTemplate)) {
-            return;
+		if ((this.mergedOptions.contentType === 'string' && this.tooltipStr) ||
+            (this.mergedOptions.contentType === 'html' && this.tooltipHtml) ||
+            (this.mergedOptions.contentType === 'template' && this.tooltipTemplate)) {
+                     
+            if (this.tooltipComponent && !this.isTooltipComponentDestroyed) {
+                this.showTooltip();
+            }
+            else {
+                this.createTooltip();
+            }                
         }
-
-		if (!this.isTooltipCreated || this.isTooltipComponentDestroyed) {
-			this.createTooltip();
-		}
-		else if (!this.isTooltipComponentDestroyed) {
-			this.showTooltip();
-		}
 	}
 
 	public hide() {
-		this.hideTooltip();
+        if (this.isTooltipVisible) {
+            this.hideTooltip();
+        }
 	}
 
 
     /** Private library-Methods **/
 
-    @HostListener('focusin')
-    @HostListener('mouseenter')
-    onMouseEnter() {
-        if (this.isDisplayOnHover == false) {
-            return;
-        }
 
-        this.show();
-    }
-
-    @HostListener('focusout')
-    @HostListener('mouseleave')
-    onMouseLeave() {
-        if (this.mergedOptions.trigger === 'hover') {
-            this.destroyTooltip();
-        }
-    }
-
-    @HostListener('click')
-    onClick() {
-        this.show();
-        this.hideAfterClickTimeoutId = window.setTimeout(() => {
-            this.destroyTooltip();
-        }, this.mergedOptions.hideDelayAfterClick)
-    }
-
-	private listenToClickOnHostElement() {
-        if (this.isDisplayOnClick) {
-            fromEvent(this.hostElementRef.nativeElement, 'click')
-            .pipe(
-                  filter(() => !!this.refToTooltipComponent?.hostView),
-                  tap(() => this.show()),
-                  // Cancel pipe when further clicks on the host-element are made:
-                  switchMap(() =>
-                    // Make delay cancellable:                
-                    // Emits when either hideDelayAfterClick is over or clearTimeouts$ is called:
-                    race(timer(this.mergedOptions.hideDelayAfterClick ?? 0), this.clearTimeouts$),
-                  ),
-                  tap(() => this.hide()),
-                  takeUntil(this.destroy$)
-              )
-              .subscribe();
-        }
+    /* Reacts only in 'isDisplayOnClick'-mode */
+    private listenToClicksOnTooltip(tooltipComponent: TooltipComponent) {        
+		tooltipComponent.userClickOnTooltip$
+			.pipe(
+                filter(() => this.isDisplayOnClick && this.isTooltipVisible),
+                tap(() => this.hideTooltip()),
+				takeUntil(this.destroy$)
+			)
+			.subscribe();
 	}
 
-    getShowDelay() {
-        return this.mergedOptions.showDelay;
+    /* Reacts only in 'isDisplayOnClick'-mode */
+	private listenToClickOnHostElement() {
+        fromEvent(this.hostElementRef.nativeElement, 'click')
+            .pipe(
+                filter(() => this.isDisplayOnClick),
+                filter(() => !!this.refToTooltipComponent?.hostView),
+                tap(() => this.show()),
+                // Cancel pipe when further clicks on the host-element are made:
+                switchMap(() => {
+                    if (!this.mergedOptions.hideDelayAfterClick || this.mergedOptions.hideDelayAfterClick <= 0) {
+                        return EMPTY;
+                    }
+                    const obsHideTooltipAfterDelay = timer(this.mergedOptions.hideDelayAfterClick ?? 0)
+                                                        .pipe(tap(() => this.hideTooltip()));  
+                    // Make delay cancellable:                
+                    // Executes obsHideTooltipAfterDelay, given clearTimeouts$ isn't called before hideDelay has elapsed:
+                    return race(obsHideTooltipAfterDelay, this.clearTimeouts$);
+                }),
+                takeUntil(this.destroy$)
+            )
+            .subscribe();
+	}
+
+    /* Listens to mouse-enter and focus-in on the host-element */
+    private listenToMouseEnterAndFocusIn() {
+        const mouseEnter$ = fromEvent(this.hostElementRef.nativeElement, 'mouseenter');
+        const focusIn$ = fromEvent(this.hostElementRef.nativeElement, 'focusin');
+      
+        merge(mouseEnter$, focusIn$)
+          .pipe(
+            tap(() => console.warn('FOCUS IN', this.isDisplayOnHover)),
+            filter(() => this.isDisplayOnHover),
+            tap(() => this.clearTimeouts$.next()),
+            switchMap(() => {
+                const obsShowTooltipAfterDelay = timer(this.mergedOptions.showDelay ?? 0)
+                                                    .pipe(tap(() => this.showTooltip()));  
+                // Make delay cancellable:                
+                // Executes obsHideTooltipAfterDelay, given clearTimeouts$ isn't called before hideDelay has elapsed:
+                return race(obsShowTooltipAfterDelay, this.clearTimeouts$);
+            }),
+            takeUntil(this.destroy$)
+          )
+          .subscribe();
     }
 
-    getHideDelay() {
-        const hideDelay = this.mergedOptions.hideDelay;
-        const hideDelayTouchscreen = this.mergedOptions.hideDelayTouchscreen;
-
-        return this.isTouchScreen ? hideDelayTouchscreen : hideDelay;
+    /* Listens to mouse-leave and focus-out on the host-element */
+    private listenToMouseLeaveAndFocusOut() {
+        const mouseLeave$ = fromEvent(this.hostElementRef.nativeElement, 'mouseleave');
+        const focusOut$ = fromEvent(this.hostElementRef.nativeElement, 'focusout');
+      
+        merge(mouseLeave$, focusOut$)
+          .pipe(
+            filter(() => this.isDisplayOnHover),
+            tap(() => this.clearTimeouts$.next()),
+            switchMap(() => {
+                const obsHideTooltipAfterDelay = timer(this.mergedOptions.hideDelay ?? 0)
+                                                    .pipe(tap(() => this.hideTooltip()));  
+                // Make delay cancellable:                
+                // Executes obsHideTooltipAfterDelay, given clearTimeouts$ isn't called before hideDelay has elapsed:
+                return race(obsHideTooltipAfterDelay, this.clearTimeouts$);
+            }),
+            takeUntil(this.destroy$)
+          )
+          .subscribe();
     }
 
-	private createTooltip(): void {
+    /* The tooltip-position needs to be adjusted when user scrolls or resizes the window */
+	private listenToScrollAndResizeEvents() {
+		const scroll$ = fromEvent(window, 'scroll');
+		const resize$ = fromEvent(window, 'resize');
+
+		merge(scroll$, resize$)
+			.pipe(
+				// For 'auditTime' check the following stackoverflow-article:
+				// 'Rxjs: How to use bufferTime while only triggering an emission when new values have arrived'
+				auditTime(100),
+				filter(() => this.isTooltipVisible && !!this.tooltipComponent),
+				tap(() => {
+					if (this.tooltipComponent) {
+						this.tooltipComponent.hostElementPosition = this.hostElementPosition;
+						this.tooltipComponent.setPosition();
+					}
+				}),
+				takeUntil(this.destroy$),
+			)
+			.subscribe();
+	}
+
+
+	private createTooltip() {
 		// Stop all ongoing processes:
 		this.clearTimeouts$.next();
 
@@ -338,8 +383,10 @@ export class TooltipDirective implements OnInit, OnDestroy {
     	this.tooltipComponent?.events
 			.pipe(
 				takeUntil(this.destroy$),
-				filter((eventType) => eventType === 'shown'),
-				tap(() => this.events.emit({ type: 'shown', position: this.hostElementPosition }))
+				tap((eventType) => {
+					eventType === 'shown' && this.events.emit({ type: 'shown', position: this.hostElementPosition });
+					eventType === 'hidden' && this.events.emit({ type: 'hidden', position: this.hostElementPosition });
+				})
 			)
             .subscribe();
     }
@@ -349,75 +396,58 @@ export class TooltipDirective implements OnInit, OnDestroy {
 			// Stop all ongoing processes:
 			this.clearTimeouts$.next();
 
+            this.events.emit({ type: 'show', position: this.hostElementPosition });
+
             // Set the data property of the component instance
-            const tooltipData = this.getTooltipData();
+            const tooltipData: TooltipDto = {
+                tooltipStr: this.tooltipStr,
+                tooltipHtml: this.tooltipHtml,
+                tooltipTemplate: this.tooltipTemplate,
+                hostElement: this.hostElementRef.nativeElement,
+                hostElementPosition: this.hostElementPosition,
+                options: this.mergedOptions
+            };
 
 			this.tooltipComponent.showTooltip(tooltipData);
 			this.isTooltipVisible = true;
-
-			this.events.emit({ type: 'show', position: this.hostElementPosition });
 		}
 	}
 
-	private hideTooltip(hideInstantly = false): void {
+	private hideTooltip(): void {
+		// Make sure no hiding-processes are ongoing:
+		this.clearTimeouts$?.next();
+
     	if (this.isTooltipVisible && !this.isTooltipComponentDestroyed) {
+
 			this.events.emit({ type: 'hide', position: this.hostElementPosition });
 
-			timer(hideInstantly ? 0 : this.mergedOptions.hideDelay ?? 0)
-				.pipe(
-					first(),
-					takeUntil(this.destroy$ || this.clearTimeouts$),
-					tap(() => {
-						this.tooltipComponent?.hideTooltip();
-						this.isTooltipVisible = false;
-						this.events.emit({ type: 'hidden', position: this.hostElementPosition });
-					}),
-					takeUntil(this.destroy$)
-				)
-				.subscribe();
+			this.tooltipComponent?.hideTooltip();
+			this.isTooltipVisible = false;
     	}
 	}
 
-	private destroyTooltip(destroyInstantly = false): void {
-		if(!this.isTooltipComponentDestroyed) {
+	private destroyTooltip(): void {
+		this.clearTimeouts$?.next();
+        this.destroy$?.next();
 
+		if(!this.isTooltipComponentDestroyed && this.refToTooltipComponent) {
 			const tooltipVisibleAtStart = this.isTooltipVisible;
 
 			if (tooltipVisibleAtStart) {
 				this.events.emit({ type: 'hide', position: this.hostElementPosition });
 			}
 
-			timer(destroyInstantly ? 0 : this.destroyDelay ?? 0)
-				.pipe(
-					first(),
-					filter(() => !this.isTooltipComponentDestroyed),
-					tap(() => {
-						if (this.refToTooltipComponent) {
-							this.appRef.detachView(this.refToTooltipComponent.hostView);
-							this.refToTooltipComponent.destroy();
-						}
-					}),
-					filter(() => tooltipVisibleAtStart),
-					tap(() => this.events.emit({ type: 'hidden', position: this.hostElementPosition }))
-				)
-				.subscribe();
+            this.appRef.detachView(this.refToTooltipComponent.hostView);
+            this.refToTooltipComponent.destroy();
+
+			if (tooltipVisibleAtStart) {
+				this.events.emit({ type: 'hidden', position: this.hostElementPosition })
+			}
 		}
+
+		this.tooltipComponent = undefined;
+		this.refToTooltipComponent = undefined;
 	}
-
-    private getTooltipData(): TooltipDto {
-        // Map tooltip-options:
-    	const mergedOptions = this.getMergedTooltipOptions();
-
-        // Set the data property of the component instance.
-        return {
-            tooltipStr: this.tooltipStr,
-            tooltipHtml: this.tooltipHtml,
-            tooltipTemplate: this.tooltipTemplate,
-            hostElement: this.hostElementRef.nativeElement,
-            hostElementPosition: this.hostElementPosition,
-            options: mergedOptions
-          };
-    }
 
     private getMergedTooltipOptions(): TooltipOptions {
     	// Merge options: the priority order is as follows:        
@@ -428,11 +458,9 @@ export class TooltipDirective implements OnInit, OnDestroy {
     	return Object.assign({}, defaultOptions, this.initOptions || {}, this.options, this.collectedOptions);
 	}
 
-    ngOnDestroy(): void {
-		this.clearTimeouts$.next();
-		this.clearTimeouts$.unsubscribe();
-		this.destroy$.next();
+	ngOnDestroy(): void {
+		this.destroyTooltip();
+		this.clearTimeouts$.unsubscribe();		
 		this.destroy$.unsubscribe();
-		this.destroyTooltip(true);    
-    }
+	}
 }

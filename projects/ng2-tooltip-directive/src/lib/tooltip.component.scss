@@ -23,7 +23,11 @@
   }
 
   &.tooltip-hide {
-    display: none;
+	  opacity: 0;
+  }
+
+  &.tooltip-display-none {
+	  display: none;
   }
 
   &.tooltip-shadow {

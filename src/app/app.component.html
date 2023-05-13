@@ -2,15 +2,15 @@
 
 <h2>placement</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Tooltip on top" placement="top">Top</button>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Tooltip on bottom" placement="bottom">Bottom</button>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Tooltip on left" placement="left">Left</button>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Tooltip on right" placement="right">Right</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltip [tooltipStr]="'Tooltip on top'" placement="top">Top</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltip tooltipStr="Tooltip on bottom" placement="bottom">Bottom</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltip tooltipStr="Tooltip on left" placement="left">Left</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltip tooltipStr="Tooltip on right" placement="right">Right</button>
 </p>
 
 <h2>autoPlacement</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" ngDraggable tooltip="Drag me any where and see the adjustment of the tooltip auto placing" placement="left">Drag me</button>
+    <button class="btn btn-small btn-outline btn-rounded" ngDraggable tooltipStr="Drag me any where and see the adjustment of the tooltip auto placing" placement="left">Drag me</button>
 </p>
 
 <h2>showDelay</h2>
@@ -86,12 +86,12 @@
 
 
 <h1>Methods</h1>
-<div tooltip="Tooltip text" #myTooltip="tooltip"></div>
+<div tooltip [tooltipStr]="'Tooltip text'" #myTooltip="tooltip"></div>
 
 <button class="btn btn-small btn-outline btn-rounded" (click)="myTooltip.show()">show()</button>
 <button class="btn btn-small btn-outline btn-rounded" (click)="myTooltip.hide()">hide()</button>
 
 <h1>Events</h1>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="See console log" (events)="handleTooltipEvents($event)">Show</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltip tooltipStr="See console log" (events)="handleTooltipEvents($event)">Show</button>
 </p>

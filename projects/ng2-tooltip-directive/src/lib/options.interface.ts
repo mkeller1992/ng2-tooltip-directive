@@ -12,7 +12,7 @@ export interface TooltipOptions {
     zIndex?: number;
     animationDuration?: number;
     animationDurationDefault?: number;
-    trigger?: string;
+    trigger?: "hover" | "click";
     tooltipClass?: string;
     display?: boolean;
     displayMobile?: boolean;

@@ -1,11 +1,11 @@
-import { Component, ElementRef, EventEmitter, HostBinding, Input, OnDestroy, OnInit, Renderer2, TemplateRef } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostBinding, OnDestroy, OnInit, Renderer2, TemplateRef } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
-import { ContentType } from 'ng2-tooltip-directive';
 import { filter, fromEvent, Subject, takeUntil, tap } from 'rxjs';
 import { defaultOptions } from './default-options.const';
 import { TooltipDto } from './tooltip.dto';
 import { TooltipOptions } from './options.interface';
 import { Placement } from './placement.type';
+import { ContentType } from './tooltip.directive';
 
 @Component({
     selector: 'tooltip',
@@ -33,6 +33,7 @@ export class TooltipComponent implements OnInit, OnDestroy {
     @HostBinding('style.pointer-events') hostStylePointerEvents!: string;
     @HostBinding('class.tooltip-show') hostClassShow!: boolean;
     @HostBinding('class.tooltip-hide') hostClassHide!: boolean;
+    @HostBinding('class.tooltip-display-none') hostClassDisplayNone!: boolean;
     @HostBinding('class.tooltip-shadow') hostClassShadow!: boolean;
     @HostBinding('class.tooltip-light') hostClassLight!: boolean;
     @HostBinding('class.tooltip-white-blue') hostClassWhiteBlue!: boolean;
@@ -56,18 +57,25 @@ export class TooltipComponent implements OnInit, OnDestroy {
                 private renderer: Renderer2) {}
 
     ngOnInit() {
-        this.listenToTransitionEnd();
+    	this.listenToFadeInEnd();
+    	this.listenToFadeOutEnd();
     }
     
     /* Methods that are invoked by tooltip.directive.ts */
 
     showTooltip(config: TooltipDto) {
         this.setTooltipProperties(config);
-        // Set tooltip visible:
-    	this.hostClassShow = true;
-    	this.hostClassHide = false;
-    	// 'setTimeout()' prevents the tooltip from 'jumping around':
-    	setTimeout(() => this.setPosition());
+
+    	this.hostClassDisplayNone = false;
+
+    	// 'setTimeout()' prevents the tooltip from 'jumping around' +
+        // hostClassDisplayNone has to be called before hostClassShow and hostClassHide
+        // to make the transition animation work.
+        setTimeout(() => {
+    		this.hostClassShow = true;
+    		this.hostClassHide = false;
+    		this.setPosition();
+    	});
     }
 
     hideTooltip() {
@@ -111,11 +119,22 @@ export class TooltipComponent implements OnInit, OnDestroy {
     	this.userClickOnTooltipSubject.next();
     }
 
-    private listenToTransitionEnd() {
+    private listenToFadeInEnd() {
     	fromEvent(this.elementRef.nativeElement, 'transitionend')
     		.pipe(
     			filter(() => this.hostClassShow),
     			tap(() => this.events.emit({ type: 'shown' })),
+    			takeUntil(this.destroy$),
+    		)
+    		.subscribe();
+    }
+
+    private listenToFadeOutEnd() {
+    	fromEvent(this.elementRef.nativeElement, 'transitionend')
+    		.pipe(
+    			filter(() => this.hostClassHide),
+    			tap(() => this.hostClassDisplayNone = true),
+    			tap(() => this.events.emit({ type: 'hidden' })),
     			takeUntil(this.destroy$),
     		)
     		.subscribe();
@@ -241,9 +260,8 @@ export class TooltipComponent implements OnInit, OnDestroy {
     }
 
     private setAnimationDuration(options: TooltipOptions) {
-        if (Number(options.animationDuration) != options.animationDurationDefault) {
-            this.hostStyleTransition = `opacity ${options.animationDuration}ms`;
-        }
+    	const animationDuration = !!options.animationDuration ? options.animationDuration : options.animationDurationDefault;
+    	this.hostStyleTransition = `opacity ${animationDuration}ms`;
     }
 
     private setStyles(options: TooltipOptions) {
