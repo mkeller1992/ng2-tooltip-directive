@@ -1,6 +1,6 @@
 import { ApplicationRef, ComponentRef, Directive, ElementRef, EventEmitter, HostListener, Inject, Injector, Input, OnChanges, OnDestroy, OnInit, Optional, Output, SimpleChanges, TemplateRef, ViewContainerRef } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
-import { auditTime, EMPTY, exhaustMap, filter, first, fromEvent, merge, race, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { auditTime, EMPTY, exhaustMap, filter, first, fromEvent, merge, NEVER, of, race, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { defaultOptions } from './default-options.const';
 import { TooltipOptions } from './options.interface';
 import { TooltipOptionsService } from './options.service';
@@ -261,13 +261,10 @@ export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
         fromEvent(this.hostElementRef.nativeElement, 'click')
             .pipe(
                 filter(() => this.isDisplayOnClick),
-                filter(() => !!this.refToTooltipComponent?.hostView),
                 tap(() => this.show()),
+                filter(() => !!this.mergedOptions.hideDelayAfterClick && this.mergedOptions.hideDelayAfterClick > 0),
                 // Cancel pipe when further clicks on the host-element are made:
                 switchMap(() => {
-                    if (!this.mergedOptions.hideDelayAfterClick || this.mergedOptions.hideDelayAfterClick <= 0) {
-                        return EMPTY;
-                    }
                     const obsHideTooltipAfterDelay = timer(this.mergedOptions.hideDelayAfterClick ?? 0)
                                                         .pipe(tap(() => this.hideTooltip()));  
                     // Make delay cancellable:                
@@ -286,7 +283,6 @@ export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
       
         merge(mouseEnter$, focusIn$)
           .pipe(
-            tap(() => console.warn('FOCUS IN', this.isDisplayOnHover)),
             filter(() => this.isDisplayOnHover),
             tap(() => this.clearTimeouts$.next()),
             switchMap(() => {

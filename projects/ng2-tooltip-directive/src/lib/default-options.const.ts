@@ -20,5 +20,6 @@ export const defaultOptions: TooltipOptions = {
 	shadow: true,
 	theme: 'white-blue',
 	offset: 8,
-	maxWidth: ''
+	maxWidth: '200px',
+	pointerEvents: 'auto', // 'none' would mean that there is no reaction to clicks
 }
