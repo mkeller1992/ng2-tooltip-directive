@@ -172,14 +172,21 @@ export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
     }
 
     get isDisplayOnHover(): boolean {
-        return this.mergedOptions.display == true &&
-               this.mergedOptions.trigger === 'hover' &&
-               !(this.isTouchScreen && this.mergedOptions.displayTouchscreen);
+        if (this.mergedOptions.display == false ||
+            (this.mergedOptions.displayTouchscreen == false && this.isTouchScreen) ||
+            this.mergedOptions.trigger !== 'hover') {
+            return false;
+        }
+        return true;
     }
 
     get isDisplayOnClick(): boolean {
-        return this.mergedOptions.display == true &&
-               (this.mergedOptions.trigger === 'click' || (this.mergedOptions.displayTouchscreen! && this.isTouchScreen));
+        if (this.mergedOptions.display == false ||
+            (this.mergedOptions.displayTouchscreen == false && this.isTouchScreen) ||
+            this.mergedOptions.trigger != 'click') {
+            return false;
+        }
+        return true;
     }
 
     get isTouchScreen() {
@@ -287,7 +294,7 @@ export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
             tap(() => this.clearTimeouts$.next()),
             switchMap(() => {
                 const obsShowTooltipAfterDelay = timer(this.mergedOptions.showDelay ?? 0)
-                                                    .pipe(tap(() => this.showTooltip()));  
+                                                    .pipe(tap(() => this.show()));  
                 // Make delay cancellable:                
                 // Executes obsHideTooltipAfterDelay, given clearTimeouts$ isn't called before hideDelay has elapsed:
                 return race(obsShowTooltipAfterDelay, this.clearTimeouts$);
