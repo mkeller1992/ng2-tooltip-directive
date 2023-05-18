@@ -226,7 +226,7 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
 		if (this.tooltipContent && this.contentType) {
 
             if (this.tooltipComponent && !this.isTooltipComponentDestroyed) {
-                this.showTooltip(this.tooltipContent, this.contentType);
+                this.showTooltip();
             }
             else {
                 this.createTooltip();
@@ -350,7 +350,7 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
 		  		takeUntil(this.destroy$ || this.clearTimeouts$),
 		  		tap(() => {
 					this.appendComponentToBody();
-					this.showTooltip(this.tooltipContent, this.contentType);
+					this.showTooltip();
 				}),
 				takeUntil(this.destroy$)
 			)
@@ -386,8 +386,8 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
             .subscribe();
     }
 
-	private showTooltip(tooltipContent: string | SafeHtml | TemplateRef<any>, contentType: ContentType | undefined): void {
-		if (this.tooltipComponent) {
+	private showTooltip(): void {
+		if (this.tooltipComponent && this.tooltipContent && this.contentType) {
 			// Stop all ongoing processes:
 			this.clearTimeouts$.next();
 
@@ -395,9 +395,9 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
 
             // Set the data property of the component instance
             const tooltipData: TooltipDto = {
-                tooltipStr: contentType === 'string' ? tooltipContent as string : undefined,
-                tooltipHtml: contentType === 'html' ? tooltipContent : undefined,
-                tooltipTemplate: contentType === 'template' ? tooltipContent as TemplateRef<any> : undefined,
+                tooltipStr: this.contentType === 'string' ? this.tooltipContent as string : undefined,
+                tooltipHtml: this.contentType === 'html' ? this.tooltipContent : undefined,
+                tooltipTemplate: this.contentType === 'template' ? this.tooltipContent as TemplateRef<any> : undefined,
                 hostElement: this.hostElementRef.nativeElement,
                 hostElementPosition: this.hostElementPosition,
                 options: this.mergedOptions
