@@ -1,20 +1,27 @@
 import { NgModule, ModuleWithProviders } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TooltipDirective } from './tooltip.directive';
+import { BaseTooltipDirective } from './base-tooltip.directive';
 import { TooltipComponent } from './tooltip.component';
 import { TooltipOptions } from './options.interface';
 import { TooltipOptionsService } from './options.service';
+import { TooltipStrDirective } from './tooltip-str.directive';
+import { TooltipHtmlDirective } from './tooltip-html.directive';
+import { TooltipTemplateDirective } from './tooltip-template.directive';
 
 @NgModule({
     declarations: [
-        TooltipDirective,
+        TooltipStrDirective,
+        TooltipHtmlDirective,
+        TooltipTemplateDirective,
         TooltipComponent
     ],
     imports: [
         CommonModule
     ],
-    exports: [
-        TooltipDirective
+    exports: [  
+        TooltipStrDirective,
+        TooltipHtmlDirective,
+        TooltipTemplateDirective,      
     ]
 })
 export class TooltipModule {

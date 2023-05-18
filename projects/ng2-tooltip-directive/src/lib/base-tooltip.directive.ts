@@ -1,6 +1,6 @@
-import { ApplicationRef, ComponentRef, Directive, ElementRef, EventEmitter, HostListener, Inject, Injector, Input, OnChanges, OnDestroy, OnInit, Optional, Output, SimpleChanges, TemplateRef, ViewContainerRef } from '@angular/core';
+import { ApplicationRef, ComponentRef, Directive, ElementRef, EventEmitter, Inject, Injector, Input, OnChanges, OnDestroy, OnInit, Optional, Output, SimpleChanges, TemplateRef, ViewContainerRef } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
-import { auditTime, EMPTY, exhaustMap, filter, first, fromEvent, merge, NEVER, of, race, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { auditTime, filter, first, fromEvent, merge, race, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { defaultOptions } from './default-options.const';
 import { TooltipOptions } from './options.interface';
 import { TooltipOptionsService } from './options.service';
@@ -11,42 +11,32 @@ import { TooltipDto } from './tooltip.dto';
 export type ContentType = "string" | "html" | "template";
 
 @Directive({
-    selector: '[tooltip]',
-    exportAs: 'tooltip',
+    selector: '[ttt]'
 })
 
-export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
+export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
+
+    // Will be populated by child-directive
+    tooltipContent!: string | SafeHtml | TemplateRef<any>;
+
+    get contentType(): ContentType | undefined {
+        return this.mergedOptions.contentType;
+    }
 
 	// A merge of all options that were passed in various ways:
-	private mergedOptions!: TooltipOptions;
+	private mergedOptions: TooltipOptions = {};
 
     // Will contain all options collected from the @Inputs
 	private collectedOptions: Partial<TooltipOptions> = {};
 
-    // Pass options as a single object:
+        // Pass options as a single object:
     @Input()
 	options: TooltipOptions = {};
-
-
-    @Input()
-    tooltipStr!: string;
-
-    @Input()
-    tooltipHtml!: SafeHtml;
-
-    @Input()
-    tooltipTemplate!: TemplateRef<any>;
-
 
 	@Input()
 	set id(val: string | number) {
 	  	this.collectedOptions.id = val;
 	}
-
-    @Input()
-    set contentType(val: ContentType) {
-        this.collectedOptions.contentType = val;
-    }
 
 	@Input()
 	set placement(val: Placement) {
@@ -190,7 +180,6 @@ export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
     }
 
     get isTouchScreen() {
-        console.warn('is touchscreen:', ('ontouchstart' in window) || window.matchMedia('(any-pointer: coarse)').matches);
         return ('ontouchstart' in window) || window.matchMedia('(any-pointer: coarse)').matches;
     }
 
@@ -206,9 +195,15 @@ export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
         private injector: Injector) {}
 
 
-    ngOnInit(): void {
+    /* Will be called from child-directive */
 
-        console.warn('On init');
+    initializeTooltip(tooltipContent: string | SafeHtml | TemplateRef<any>, contentType: ContentType) {
+        // Set user-inputs:
+        this.tooltipContent = tooltipContent;
+        this.collectedOptions.contentType = contentType;
+
+        // Map tooltip options:
+        this.mergedOptions = this.getMergedTooltipOptions();
 
 		// On click on input-field: Hide tooltip
 		this.listenToClickOnHostElement();
@@ -217,24 +212,21 @@ export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
         this.listenToMouseLeaveAndFocusOut();
 
 		// The tooltip-position needs to be adjusted when user scrolls or resizes the window:
-		this.listenToScrollAndResizeEvents();        
+		this.listenToScrollAndResizeEvents();    
     }
 
     ngOnChanges(changes: SimpleChanges) {
         // Map tooltip options:
         this.mergedOptions = this.getMergedTooltipOptions();
-        console.warn('On changes', this.mergedOptions);
     }
 
-    /** Public User-Methods **/
+    /* Public methods for library-users */
 
 	public show() {
-		if ((this.mergedOptions.contentType === 'string' && this.tooltipStr) ||
-            (this.mergedOptions.contentType === 'html' && this.tooltipHtml) ||
-            (this.mergedOptions.contentType === 'template' && this.tooltipTemplate)) {
-                     
+		if (this.tooltipContent && this.contentType) {
+
             if (this.tooltipComponent && !this.isTooltipComponentDestroyed) {
-                this.showTooltip();
+                this.showTooltip(this.tooltipContent, this.contentType);
             }
             else {
                 this.createTooltip();
@@ -358,14 +350,14 @@ export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
 		  		takeUntil(this.destroy$ || this.clearTimeouts$),
 		  		tap(() => {
 					this.appendComponentToBody();
-					this.showTooltip();
+					this.showTooltip(this.tooltipContent, this.contentType);
 				}),
 				takeUntil(this.destroy$)
 			)
 			.subscribe();
 	}
 
-    appendComponentToBody(): void {
+    private appendComponentToBody(): void {
         // Create the component using the ViewContainerRef.
         // This way the component is automatically added to the change detection cycle of the Angular application
         this.refToTooltipComponent = this.viewContainerRef.createComponent(TooltipComponent, { injector: this.injector });
@@ -394,7 +386,7 @@ export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
             .subscribe();
     }
 
-	private showTooltip(): void {
+	private showTooltip(tooltipContent: string | SafeHtml | TemplateRef<any>, contentType: ContentType | undefined): void {
 		if (this.tooltipComponent) {
 			// Stop all ongoing processes:
 			this.clearTimeouts$.next();
@@ -403,9 +395,9 @@ export class TooltipDirective implements OnInit, OnChanges, OnDestroy {
 
             // Set the data property of the component instance
             const tooltipData: TooltipDto = {
-                tooltipStr: this.tooltipStr,
-                tooltipHtml: this.tooltipHtml,
-                tooltipTemplate: this.tooltipTemplate,
+                tooltipStr: contentType === 'string' ? tooltipContent as string : undefined,
+                tooltipHtml: contentType === 'html' ? tooltipContent : undefined,
+                tooltipTemplate: contentType === 'template' ? tooltipContent as TemplateRef<any> : undefined,
                 hostElement: this.hostElementRef.nativeElement,
                 hostElementPosition: this.hostElementPosition,
                 options: this.mergedOptions

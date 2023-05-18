@@ -1,97 +1,114 @@
+<ng-template #tooltipTemplate>
+	<div style="color: blue; font-weight: bold;">
+        Tooltip Template
+	</div>
+</ng-template>
+
+
 <h1>Properties</h1>
 
 <h2>placement</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip [tooltipStr]="'Tooltip on top'" placement="top">Top</button>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip tooltipStr="Tooltip on bottom" placement="bottom">Bottom</button>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip tooltipStr="Tooltip on left" placement="left">Left</button>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip tooltipStr="Tooltip on right" placement="right">Right</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on top" placement="top">Top</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on bottom" placement="bottom">Bottom</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on left" placement="left">Left</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on right" placement="right">Right</button>
+</p>
+
+<h2>Html Tooltip</h2>
+<p>
+    <button class="btn btn-small btn-outline btn-rounded" [tooltipHtml]="safeTooltipHtml" placement="right">Html Tooltip</button>
+</p>
+
+<h2>Tooltip Template</h2>
+<p>
+    <button class="btn btn-small btn-outline btn-rounded" [tooltipTemplate]="tooltipTemplate" placement="right">Tooltip Template</button>
 </p>
 
 <h2>autoPlacement</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" ngDraggable tooltipStr="Drag me any where and see the adjustment of the tooltip auto placing" placement="left">Drag me</button>
+    <button class="btn btn-small btn-outline btn-rounded" ngDraggable [autoPlacement]="true" tooltipStr="Drag me anywhere and see the adjustment of the tooltip auto placing">Drag me</button>
 </p>
 
 <h2>showDelay</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Show delay 1000ms" placement="left" [showDelay]="1000">Show delay 1000ms</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Show delay 1000ms" placement="left" [showDelay]="1000">Show delay 1000ms</button>
 </p>
 
 <h2>hideDelay</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Hide delay 1000ms" placement="left" [hideDelay]="1000">Hide delay 1000ms</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Hide delay 1000ms" placement="left" [hideDelay]="1000">Hide delay 1000ms</button>
 </p>
 
 
 <h2>display</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Display false" [display]="false">Display false</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Display false" [display]="false">Display false</button>
 </p>
 
 <h2>zIndex</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="zIndex 500" [zIndex]="500">zIndex 500</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="zIndex 500" [zIndex]="500">zIndex 500</button>
 </p>
 
 <h2>trigger</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Trigger click" trigger="click">Trigger click</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Trigger click" trigger="click">Trigger click</button>
 </p>
 
 <h2>tooltipClass</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Custom class" tooltipClass="custom-class">Custom class</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Custom class" tooltipClass="custom-class">Custom class</button>
 </p>
 
 <h2>animationDuration</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Animation duration 500ms" [animationDuration]="500">Animation duration 500ms</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Animation duration 500ms" [animationDuration]="500">Animation duration 500ms</button>
 </p>
 
 <h2>theme</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Light theme" theme="light">Light theme</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Light theme" theme="light">Light theme</button>
 </p>
 
 <h2>shadow</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Shadow" [shadow]="false">No shadow</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Shadow" [shadow]="false">No shadow</button>
 </p>
 
 <h2>offset</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Offset 2px" [offset]="2">Offset 2px</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Offset 2px" [offset]="2">Offset 2px</button>
 </p>
 
 <h2>width</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Width 100 pixels" width="100px">Width 100 pixels</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Width 100 pixels" width="100px">Width 100 pixels</button>
 </p>
 
 <h2>max-width</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Max width 100 pixels" maxWidth="100px">Max width 100 pixels</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Max width 100 pixels" maxWidth="100px">Max width 100 pixels</button>
 </p>
 
 <h2>pointerEvents</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="pointerEvents: none" pointerEvents="auto">pointerEvents: auto</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="pointerEvents: none" pointerEvents="auto">pointerEvents: auto</button>
 </p>
 
 <h2>position</h2>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip="Custom position" [position]="{top: 0, left: 100}">Custom position</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Custom position" [position]="{top: 0, left: 100}">Custom position</button>
 </p>
 
 
 <h1>Methods</h1>
-<div tooltip [tooltipStr]="'Tooltip text'" #myTooltip="tooltip"></div>
+<div tooltip [tooltipStr]="'Tooltip text'" #myTooltip="tooltipStr"></div>
 
 <button class="btn btn-small btn-outline btn-rounded" (click)="myTooltip.show()">show()</button>
 <button class="btn btn-small btn-outline btn-rounded" (click)="myTooltip.hide()">hide()</button>
 
 <h1>Events</h1>
 <p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltip tooltipStr="See console log" (events)="handleTooltipEvents($event)">Show</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="See console log" (events)="handleTooltipEvents($event)">Show</button>
 </p>

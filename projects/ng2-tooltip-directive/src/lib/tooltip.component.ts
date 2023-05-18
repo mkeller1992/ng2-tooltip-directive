@@ -5,7 +5,7 @@ import { defaultOptions } from './default-options.const';
 import { TooltipDto } from './tooltip.dto';
 import { TooltipOptions } from './options.interface';
 import { Placement } from './placement.type';
-import { ContentType } from './tooltip.directive';
+import { ContentType } from './base-tooltip.directive';
 
 @Component({
     selector: 'tooltip',
@@ -64,6 +64,7 @@ export class TooltipComponent implements OnInit, OnDestroy {
     /* Methods that are invoked by tooltip.directive.ts */
 
     showTooltip(config: TooltipDto) {
+
         this.setTooltipProperties(config);
 
     	this.hostClassDisplayNone = false;
@@ -142,9 +143,16 @@ export class TooltipComponent implements OnInit, OnDestroy {
 
     private setTooltipProperties(config: TooltipDto) {
         this.currentContentType = config.options.contentType ?? 'string';
-        this.tooltipStr = this.currentContentType === 'string' ? config.tooltipStr : '';
-        this.tooltipHtml = this.currentContentType === 'html' ? config.tooltipHtml : '';
-        this.tooltipTemplate = this.currentContentType === 'template' ? config.tooltipTemplate : {} as TemplateRef<any>;
+
+		if (this.currentContentType === 'string' && config.tooltipStr) {
+			this.tooltipStr = config.tooltipStr;
+		}
+		if (this.currentContentType === 'html' && config.tooltipHtml) {
+			this.tooltipHtml = config.tooltipHtml;
+		}
+		if (this.currentContentType === 'template' && config.tooltipTemplate) {
+			this.tooltipTemplate = config.tooltipTemplate;
+		}
 
         this.isLightTheme = config.options.theme === 'light' || config.options.theme === 'white-blue';
         this.originalPlacement = config.options.placement!;
