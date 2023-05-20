@@ -9,6 +9,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 export class AppComponent implements OnInit {
 
+  title = 'Properties';
+
   tooltipHtml: string = '<div><p>This is a <strong>tooltip</strong> with HTML</p></div>';
   safeTooltipHtml!: SafeHtml;
 
