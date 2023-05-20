@@ -221,6 +221,7 @@
   $BorderColorThemeWhiteBlue: blue;
 
   &.tooltip-top.tooltip-white-blue {
+    margin-top: -2px;
     border: 1px solid $BorderColorThemeWhiteBlue;
   
       .tooltip-arrow {
