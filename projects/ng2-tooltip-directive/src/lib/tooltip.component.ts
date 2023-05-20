@@ -71,7 +71,8 @@ export class TooltipComponent implements OnInit, OnDestroy {
     	this.listenToFadeOutEnd();
     }
     
-    /* Methods that are invoked by tooltip.directive.ts */
+	
+    /* Methods that are invoked by base-tooltip.directive.ts */
 
     showTooltip(config: TooltipDto) {
 
@@ -94,12 +95,12 @@ export class TooltipComponent implements OnInit, OnDestroy {
     }
 
     setPosition(): void {
-		let placementStyles = this.computeMeasuresForPlacement(this.originalPlacement);
+		let placementStyles = this.calculateTooltipStylesForPlacement(this.originalPlacement);
 		const isInsideVisibleArea = this.isPlacementInsideVisibleArea(placementStyles);
 
 		if (!isInsideVisibleArea && this.autoPlacement) {
 			for (let placement of this.prioritizedPlacements) {
-				const styles = this.computeMeasuresForPlacement(placement);
+				const styles = this.calculateTooltipStylesForPlacement(placement);
 				const isVisible = this.isPlacementInsideVisibleArea(styles);
 
 				if(isVisible) {
@@ -113,11 +114,15 @@ export class TooltipComponent implements OnInit, OnDestroy {
 		this.setPlacementStyles(placementStyles);
     }
 
-    /* Methods that get invoked by html */
+
+    /* Method that gets invoked by html */
 
     handleTooltipClick() {
     	this.userClickOnTooltipSubject.next();
     }
+
+
+	/* Private helper methods */
 
     private listenToFadeInEnd() {
     	fromEvent(this.elementRef.nativeElement, 'transitionend')
@@ -179,7 +184,7 @@ export class TooltipComponent implements OnInit, OnDestroy {
     	});
     }
 
-	private computeMeasuresForPlacement(placement: Placement): TooltipStyles {
+	private calculateTooltipStylesForPlacement(placement: Placement): TooltipStyles {
 		const isFormCtrlSVG = this.hostElement instanceof SVGElement;
 		const tooltip = this.elementRef.nativeElement;
 		const tooltipHeight = tooltip.clientHeight;

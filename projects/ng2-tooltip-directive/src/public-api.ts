@@ -1,5 +1,5 @@
 /*
- * Public API Surface of ng2-tooltip-directive
+ * Public API Surface of tooltip-library
  */
 
 export * from './lib/tooltip.module';

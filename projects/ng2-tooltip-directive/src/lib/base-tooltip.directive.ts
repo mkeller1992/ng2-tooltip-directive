@@ -153,20 +153,15 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
 
     private isTooltipVisible = false;
 
-    get isTooltipComponentDestroyed(): boolean {        
+    private get isTooltipComponentDestroyed(): boolean {        
 		return !this.refToTooltipComponent?.location.nativeElement.isConnected;
     }
 
-    get calculatedHideDelay(): number {
-        return this.isTouchScreen && this.mergedOptions.hideDelayTouchscreen ?
-               this.mergedOptions.hideDelayTouchscreen : (this.mergedOptions.hideDelay ?? 0);
-    }
-
-    get hostElementPosition(): { top: number, left: number } | DOMRect {
+    private get hostElementPosition(): { top: number, left: number } | DOMRect {
         return this.mergedOptions.position ?? this.hostElementRef.nativeElement.getBoundingClientRect();
     }
 
-    get isDisplayOnHover(): boolean {
+    private get isDisplayOnHover(): boolean {
         if (this.mergedOptions.display == false ||
             (this.mergedOptions.displayTouchscreen == false && this.isTouchScreen) ||
             this.mergedOptions.trigger !== 'hover') {
@@ -175,7 +170,7 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
         return true;
     }
 
-    get isDisplayOnClick(): boolean {
+    private get isDisplayOnClick(): boolean {
         if (this.mergedOptions.display == false ||
             (this.mergedOptions.displayTouchscreen == false && this.isTouchScreen) ||
             this.mergedOptions.trigger != 'click') {
@@ -184,7 +179,7 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
         return true;
     }
 
-    get isTouchScreen() {
+    private get isTouchScreen() {
         return ('ontouchstart' in window) || window.matchMedia('(any-pointer: coarse)').matches;
     }
 
@@ -473,6 +468,7 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
     	return Object.assign({}, defaultOptions, this.initOptions || {}, this.options, this.collectedOptions);
 	}
 
+    
 	ngOnDestroy(): void {
 		this.destroyTooltip();
 		this.clearTimeouts$.unsubscribe();		
