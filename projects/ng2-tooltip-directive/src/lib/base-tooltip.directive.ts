@@ -1,6 +1,6 @@
 import { ApplicationRef, ComponentRef, Directive, ElementRef, EventEmitter, Inject, Injector, Input, OnChanges, OnDestroy, OnInit, Optional, Output, SimpleChanges, TemplateRef, ViewContainerRef } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
-import { auditTime, filter, first, fromEvent, merge, race, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { auditTime, filter, first, fromEvent, map, merge, race, Subject, switchMap, takeUntil, tap, throttleTime, timer } from 'rxjs';
 import { defaultOptions } from './default-options.const';
 import { TooltipOptions } from './options.interface';
 import { TooltipOptionsService } from './options.service';
@@ -46,6 +46,11 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
 	@Input()
 	set autoPlacement(val: boolean) {
 	 	 this.collectedOptions.autoPlacement = val;
+	}
+
+    @Input()
+	set horizontalTextAlignment(val: 'left' | 'center' | 'right') {
+	 	 this.collectedOptions.horizontalTextAlignment = val;
 	}
 
     @Input()
@@ -259,9 +264,24 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
 	private listenToClickOnHostElement() {
         fromEvent(this.hostElementRef.nativeElement, 'click')
             .pipe(
+                // 'throttleTime' emits a value from the source observable,
+                // then ignores subsequent source values for duration milliseconds, then repeats this process.
+				throttleTime(200),
                 filter(() => this.isDisplayOnClick),
-                tap(() => this.show()),
-                filter(() => !!this.mergedOptions.hideDelayAfterClick && this.mergedOptions.hideDelayAfterClick > 0),
+                map(() => { 
+                    if (this.isTooltipVisible) {
+                        this.hideTooltip();
+                        return false;
+                    }
+                    else {
+                        this.show();
+                        return true;
+                    }
+                }),
+                filter(isAboutToDisplayTooltip =>
+                             isAboutToDisplayTooltip && 
+                             !!this.mergedOptions.hideDelayAfterClick &&
+                             this.mergedOptions.hideDelayAfterClick > 0),
                 // Cancel pipe when further clicks on the host-element are made:
                 switchMap(() => {
                     const obsHideTooltipAfterDelay = timer(this.mergedOptions.hideDelayAfterClick ?? 0)

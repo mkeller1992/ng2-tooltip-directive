@@ -1,13 +1,14 @@
-<div *ngIf="isLightTheme" class="tooltip-arrow"></div>
+<div class="tooltip-arrow"></div>
 
 <div *ngIf="currentContentType === 'string'"
-		(click)="handleTooltipClick()" 
+		(click)="handleTooltipClick()"
+		[style.text-align]="horizontalTextAlignment"
 		class="tooltip-label">
 		{{ tooltipStr }}
 </div>
 
 <div *ngIf="currentContentType === 'html'"
-		(click)="handleTooltipClick()" 
+		(click)="handleTooltipClick()"
 		class="tooltip-label"
 		[innerHTML]="tooltipHtml">
 </div>

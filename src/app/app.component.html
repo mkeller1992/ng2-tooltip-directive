@@ -8,11 +8,33 @@
 <h1>Properties</h1>
 
 <h2>placement</h2>
-<p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on top" placement="top">Top</button>
-    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on bottom" placement="bottom">Bottom</button>
-    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on left" placement="left">Left</button>
+<p>    
     <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on right" placement="right">Right</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on top" placement="top">Top</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on bottom" horizontalTextAlignment="left" placement="bottom">Bottom</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on left" placement="left">Left</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on left" placement="top-left">Top-Left</button>
+    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Tooltip on left" placement="bottom-left">Bottom-Left</button>
+</p>
+
+<h2>Theme Dark</h2>
+<p>
+    <button class="btn btn-small btn-outline btn-rounded" theme="dark" tooltipStr="Tooltip on right" placement="right">Right</button>
+    <button class="btn btn-small btn-outline btn-rounded" theme="dark" tooltipStr="Tooltip on top" placement="top">Top</button>
+    <button class="btn btn-small btn-outline btn-rounded" theme="dark" tooltipStr="Tooltip on bottom" horizontalTextAlignment="left" placement="bottom">Bottom</button>
+    <button class="btn btn-small btn-outline btn-rounded" theme="dark" tooltipStr="Tooltip on left" placement="left">Left</button>
+    <button class="btn btn-small btn-outline btn-rounded" theme="dark" tooltipStr="Tooltip on left" placement="top-left">Top-Left</button>
+    <button class="btn btn-small btn-outline btn-rounded" theme="dark" tooltipStr="Tooltip on left" placement="bottom-left">Bottom-Left</button>
+</p>
+
+<h2>Theme Light</h2>
+<p>
+    <button class="btn btn-small btn-outline btn-rounded" theme="light" tooltipStr="Tooltip on right" placement="right">Right</button>
+    <button class="btn btn-small btn-outline btn-rounded" theme="light" tooltipStr="Tooltip on top" placement="top">Top</button>
+    <button class="btn btn-small btn-outline btn-rounded" theme="light" tooltipStr="Tooltip on bottom" horizontalTextAlignment="left" placement="bottom">Bottom</button>
+    <button class="btn btn-small btn-outline btn-rounded" theme="light" tooltipStr="Tooltip on left" placement="left">Left</button>
+    <button class="btn btn-small btn-outline btn-rounded" theme="light" tooltipStr="Tooltip on left" placement="top-left">Top-Left</button>
+    <button class="btn btn-small btn-outline btn-rounded" theme="light" tooltipStr="Tooltip on left" placement="bottom-left">Bottom-Left</button>
 </p>
 
 <h2>Html Tooltip</h2>
@@ -23,6 +45,13 @@
 <h2>Tooltip Template</h2>
 <p>
     <button class="btn btn-small btn-outline btn-rounded" [tooltipTemplate]="tooltipTemplate" placement="right">Tooltip Template</button>
+</p>
+
+<h2>Horizontal Text Alignment</h2>
+<p>
+    <button class="btn btn-small btn-outline btn-rounded" horizontalTextAlignment="left" tooltipStr="Text align left - Quite long text" maxWidth="80" placement="right">Text align left</button>
+    <button class="btn btn-small btn-outline btn-rounded" horizontalTextAlignment="center" tooltipStr="Text align center - Quite long text" maxWidth="80" placement="right">Text align center</button>
+    <button class="btn btn-small btn-outline btn-rounded" horizontalTextAlignment="right" tooltipStr="Text align right - Quite long text" maxWidth="80" placement="right">Text align right</button>
 </p>
 
 <h2>autoPlacement</h2>
@@ -64,11 +93,6 @@
 <h2>animationDuration</h2>
 <p>
     <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Animation duration 500ms" [animationDuration]="500">Animation duration 500ms</button>
-</p>
-
-<h2>theme</h2>
-<p>
-    <button class="btn btn-small btn-outline btn-rounded" tooltipStr="Light theme" theme="light">Light theme</button>
 </p>
 
 <h2>shadow</h2>

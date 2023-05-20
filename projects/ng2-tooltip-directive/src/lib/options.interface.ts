@@ -6,6 +6,7 @@ export interface TooltipOptions {
     placement?: Placement;
     autoPlacement?: boolean;
     contentType?: ContentType;
+    horizontalTextAlignment?: "left" | "center" | "right";
     showDelay?: number;
     hideDelay?: number;
     hideDelayTouchscreen?: number;

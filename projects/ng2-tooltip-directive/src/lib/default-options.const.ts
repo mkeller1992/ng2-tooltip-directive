@@ -5,6 +5,7 @@ export const defaultOptions: TooltipOptions = {
 	placement: 'top',
 	autoPlacement: true,
 	contentType: 'string',
+	horizontalTextAlignment: 'center',
 	showDelay: 0,
 	hideDelay: 300,
 	hideDelayTouchscreen: 0,
