@@ -6,7 +6,11 @@ export interface TooltipOptions {
     placement?: Placement;
     autoPlacement?: boolean;
     contentType?: ContentType;
+    textColor?: string,
+	backgroundColor?: string,
+	borderColor?: string,
     horizontalTextAlignment?: "left" | "center" | "right";
+    shadow?: boolean;
     showDelay?: number;
     hideDelay?: number;
     hideDelayTouchscreen?: number;
@@ -18,8 +22,6 @@ export interface TooltipOptions {
     display?: boolean;
     displayMobile?: boolean;
     displayTouchscreen?: boolean;
-    shadow?: boolean;
-    theme?: "dark" | "light" | "white-blue";
     offset?: number;
     width?: string;
     maxWidth?: string;

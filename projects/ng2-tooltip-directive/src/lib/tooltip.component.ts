@@ -44,9 +44,10 @@ export class TooltipComponent implements OnInit, OnDestroy {
     @HostBinding('class.tooltip-show') hostClassShow!: boolean;
     @HostBinding('class.tooltip-hide') hostClassHide!: boolean;
     @HostBinding('class.tooltip-display-none') hostClassDisplayNone!: boolean;
-    @HostBinding('class.tooltip-shadow') hostClassShadow!: boolean;
-    @HostBinding('class.tooltip-light') hostClassLight!: boolean;
-    @HostBinding('class.tooltip-white-blue') hostClassWhiteBlue!: boolean;
+    @HostBinding('class.tooltip-shadow') hostClassShadow!: boolean;	
+	@HostBinding('style.--tooltip-text-color') textColor!: string;
+	@HostBinding('style.--tooltip-background-color') backgroundColor!: string;;
+	@HostBinding('style.--tooltip-border-color') borderColor!: string;
 
 
     tooltipStr!: string;
@@ -71,7 +72,7 @@ export class TooltipComponent implements OnInit, OnDestroy {
     	this.listenToFadeOutEnd();
     }
     
-	
+
     /* Methods that are invoked by base-tooltip.directive.ts */
 
     showTooltip(config: TooltipDto) {
@@ -284,15 +285,16 @@ export class TooltipComponent implements OnInit, OnDestroy {
     }
 
     private setStyles(options: TooltipOptions) {
-        this.hostClassShadow = options.shadow ?? true;
-        this.hostClassLight = options.theme === 'light';
-        this.hostClassWhiteBlue = options.theme === 'white-blue';
+		this.textColor = options.textColor ?? defaultOptions.textColor!;
+		this.backgroundColor = options.backgroundColor ?? defaultOptions.backgroundColor!;
+		this.borderColor = options.borderColor ?? defaultOptions.borderColor!;
+        this.hostClassShadow = options.shadow ?? true;        
 
 		if (options.maxWidth) {
-			this.hostStyleMaxWidth = `${options.maxWidth}px`;
+			this.hostStyleMaxWidth = options.maxWidth;
 		}
 		if (options.width) {
-			this.hostStyleWidth = `${options.width}px`;
+			this.hostStyleWidth = options.width;
 		}
     }
 

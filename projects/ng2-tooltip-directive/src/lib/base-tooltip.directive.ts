@@ -49,6 +49,21 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
 	}
 
     @Input()
+    set textColor(val: string) {
+        this.collectedOptions.textColor = val;
+    }
+
+    @Input()
+    set backgroundColor(val: string) {
+        this.collectedOptions.backgroundColor = val;
+    }
+
+    @Input()
+    set borderColor(val: string) {
+        this.collectedOptions.borderColor = val;
+    }
+
+    @Input()
 	set horizontalTextAlignment(val: 'left' | 'center' | 'right') {
 	 	 this.collectedOptions.horizontalTextAlignment = val;
 	}
@@ -96,11 +111,6 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
     @Input()
     set shadow(val: boolean) {
         this.collectedOptions.shadow = val;
-    }
-
-    @Input()
-    set theme(val: 'dark' | 'light' | 'white-blue') {
-        this.collectedOptions.theme = val;
     }
 
     @Input()
@@ -468,7 +478,7 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
     	return Object.assign({}, defaultOptions, this.initOptions || {}, this.options, this.collectedOptions);
 	}
 
-    
+
 	ngOnDestroy(): void {
 		this.destroyTooltip();
 		this.clearTimeouts$.unsubscribe();		

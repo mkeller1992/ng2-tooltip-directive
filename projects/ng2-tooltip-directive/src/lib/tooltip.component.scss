@@ -1,7 +1,5 @@
 :host {
   max-width: 200px;
-  background-color: black;
-  color: #fff;
   text-align: center;
   border-radius: 6px;
   padding: 5px 8px;
@@ -33,88 +31,21 @@
   &.tooltip-shadow {
     box-shadow: 0 7px 15px -5px rgba(0, 0, 0, 0.4);
   }
-  &.tooltip-white-blue.tooltip-shadow,
-  &.tooltip-light.tooltip-shadow {
-    box-shadow: 0 5px 15px -5px rgba(0, 0, 0, 0.4);
-  }
 
-  &.tooltip::after {
-    content: "";
-    position: absolute;
-    border-style: solid;
-  }
-
-  /* Dark theme */
-
-  &.tooltip-top::after {
-    top: 100%;
-    left: 50%;
-    margin-left: -7px;
-    border-width: 7px;
-    border-color: black transparent transparent transparent;
-  }
-
-  &.tooltip-top-left::after {
-    top: 100%;
-    left: 20%;
-    margin-left: -7px;
-    border-width: 7px;
-    border-color: black transparent transparent transparent;
-  }
-
-  &.tooltip-bottom::after {
-    bottom: 100%;
-    left: 50%;
-    margin-left: -7px;
-    border-width: 7px;
-    border-color: transparent transparent black transparent;
-  }
-
-  &.tooltip-bottom-left::after {
-    bottom: 100%;
-    left: 20%;
-    margin-left: -7px;
-    border-width: 7px;
-    border-color: transparent transparent black transparent;
-  }
-
-  &.tooltip-left::after {
-    top: 50%;
-    left: 100%;
-    margin-top: -6px;
-    border-width: 7px;
-    border-color: transparent transparent transparent black;
-  }
-
-  &.tooltip-right::after {
-    top: 50%;
-    right: 100%;
-    margin-top: -6px;
-    border-width: 7px;
-    border-color: transparent black transparent transparent;
-  }
-
-  /* Light theme */
-  &.tooltip-light::after,
-  &.tooltip-white-blue::after {
-    display: none;
-  }
-
-  &.tooltip-light,
-  &.tooltip-white-blue {
+  &.tooltip {
     border: 1px solid rgba(0, 0, 0, .06);
-    background-color: #fff;
-    color: black;
+    background-color: var(--tooltip-background-color);
+    color: var(--tooltip-text-color);
 
     .tooltip-arrow {
       position: absolute;
       width: 10px;
       height: 10px;
       transform: rotate(135deg);
-      background-color: rgba(0, 0, 0, .07);
+      background-color: var(--tooltip-background-color);
 
       &::after {
-        background-color: #fff;
+        background-color: var(--tooltip-background-color);
         content: '';
         display: block;
         position: absolute;
@@ -124,216 +55,113 @@
     }
   }
 
-  &.tooltip-top.tooltip-light {
+  &.tooltip-top {
     margin-top: -2px;
-
+    border: 1px solid var(--tooltip-border-color);
+    
     .tooltip-arrow {
       top: 100%;
-      left: 50%;
-      margin-top: -4px;
-      margin-left: -5px;
+      left: calc(50% - 7px);
+      margin-top: -3px;
       background: linear-gradient(to bottom left, rgba(0, 0, 0, .07) 50%, transparent 50%);
-
+  
       &::after {
         top: 1px;
         right: 1px;
+        border-top: 1px solid var(--tooltip-border-color);
+        border-right: 1px solid var(--tooltip-border-color);
       }
     }
   }
 
-  &.tooltip-top-left.tooltip-light {  
-      .tooltip-arrow {
-        top: 100%;
-        left: 20%;
-        margin-top: -3px;
-        margin-left: -5px;
-        background: linear-gradient(to bottom left, rgba(0, 0, 0, .07) 50%, transparent 50%);
+  &.tooltip-top-left {
+    border: 1px solid var(--tooltip-border-color);
+    
+    .tooltip-arrow {
+      top: 100%;
+      left: calc(20% - 7px);
+      margin-top: -3px;
+      background: linear-gradient(to bottom left, rgba(0, 0, 0, .07) 50%, transparent 50%);
   
-        &::after {
-          top: 1px;
-          right: 1px;
-        }
+      &::after {
+        top: 1px;
+        right: 1px;
+        border-top: 1px solid var(--tooltip-border-color);            
+        border-right: 1px solid var(--tooltip-border-color);
       }
     }
-
-  &.tooltip-bottom.tooltip-light {
+  }
+  
+  &.tooltip-bottom {
+    border: 1px solid var(--tooltip-border-color);
+    
     .tooltip-arrow {
       bottom: 100%;
-      left: 50%;
-      margin-bottom: -4px;
-      margin-left: -5px;
+      left: calc(50% - 7px); 
+      margin-bottom: -3px;
       background: linear-gradient(to top right, rgba(0, 0, 0, .1) 50%, transparent 50%);
-
+      
       &::after {
         top: -1px;
         right: -1px;
+        border-bottom: 1px solid var(--tooltip-border-color);
+        border-left: 1px solid var(--tooltip-border-color);
       }
     }
   }
 
-  &.tooltip-bottom-left.tooltip-light { 
-      .tooltip-arrow {
-        bottom: 100%;
-        left: 20%;
-        margin-bottom: -3px;
-        margin-left: -5px;
-        background: linear-gradient(to top right, rgba(0, 0, 0, .1) 50%, transparent 50%);
-  
-        &::after {
-          top: -1px;
-          right: -1px;
-        }
+  &.tooltip-bottom-left {
+    border: 1px solid var(--tooltip-border-color);
+    
+    .tooltip-arrow {
+      bottom: 100%;
+      left: calc(20% - 7px); 
+      margin-bottom: -3px;
+      background: linear-gradient(to top right, rgba(0, 0, 0, .1) 50%, transparent 50%);
+      
+      &::after {
+        top: -1px;
+        right: -1px;
+        border-bottom: 1px solid var(--tooltip-border-color);
+        border-left: 1px solid var(--tooltip-border-color);
       }
     }
+  }
 
-  &.tooltip-left.tooltip-light {
+  &.tooltip-left {
+    border: 1px solid var(--tooltip-border-color);
+    
     .tooltip-arrow {
-      top: 50%;
-      left: 100%;
-      margin-top: -5px;
-      margin-left: -4px;
+      top: calc(50% - 4px);
+      left: 100%;      
+      margin-left: -3px;
       background: linear-gradient(to bottom right, rgba(0, 0, 0, .07) 50%, transparent 50%);
-
+      
       &::after {
         top: 1px;
         right: -1px;
+        border-top: 1px solid var(--tooltip-border-color);
+        border-left: 1px solid var(--tooltip-border-color);
       }
     }
   }
 
-  &.tooltip-right.tooltip-light {
+  &.tooltip-right {
+    border: 1px solid var(--tooltip-border-color);
+  
     .tooltip-arrow {
-      top: 50%;
+      top: calc(50% - 4px);
       right: 100%;
-      margin-top: -5px;
-      margin-right: -4px;
+      margin-right: -3px;
       background: linear-gradient(to top left, rgba(0, 0, 0, .07) 50%, transparent 50%);
-
+  
       &::after {
         top: -1px;
         right: 1px;
+        border-bottom: 1px solid var(--tooltip-border-color);
+        border-right: 1px solid var(--tooltip-border-color);
       }
     }
   }
-
-  /* White-blue theme */
-
-  $BorderColorThemeWhiteBlue: blue;
-
-  &.tooltip-top.tooltip-white-blue {
-    margin-top: -2px;
-    border: 1px solid $BorderColorThemeWhiteBlue;
-  
-      .tooltip-arrow {
-        top: 100%;
-        left: 50%;
-        margin-top: -3px;
-        margin-left: -5px;
-        background: linear-gradient(to bottom left, rgba(0, 0, 0, .07) 50%, transparent 50%);
-  
-        &::after {
-          top: 1px;
-          right: 1px;
-          border-top: 1px solid $BorderColorThemeWhiteBlue;
-          border-right: 1px solid $BorderColorThemeWhiteBlue;
-        }
-      }
-    }
-
-  
-    &.tooltip-top-left.tooltip-white-blue {
-      border: 1px solid $BorderColorThemeWhiteBlue;
-    
-        .tooltip-arrow {
-        top: 100%;
-          left: 20%;
-          margin-top: -3px;
-          margin-left: -5px;
-          background: linear-gradient(to bottom left, rgba(0, 0, 0, .07) 50%, transparent 50%);
-    
-          &::after {
-            top: 1px;
-            right: 1px;
-            border-top: 1px solid $BorderColorThemeWhiteBlue;
-            border-right: 1px solid $BorderColorThemeWhiteBlue;
-          }
-        }
-      }
-    
-      &.tooltip-bottom.tooltip-white-blue {
-      border: 1px solid $BorderColorThemeWhiteBlue;
-    
-        .tooltip-arrow {
-          bottom: 100%;
-          left: 50%;
-          margin-bottom: -3px;
-          margin-left: -5px;
-          background: linear-gradient(to top right, rgba(0, 0, 0, .1) 50%, transparent 50%);
-    
-          &::after {
-            top: -1px;
-            right: -1px;
-            border-bottom: 1px solid $BorderColorThemeWhiteBlue;
-            border-left: 1px solid $BorderColorThemeWhiteBlue;
-          }
-        }
-      }
-    
-      &.tooltip-bottom-left.tooltip-white-blue {
-      border: 1px solid $BorderColorThemeWhiteBlue;
-    
-        .tooltip-arrow {
-          bottom: 100%;
-          left: 20%;
-          margin-bottom: -3px;
-          margin-left: -5px;
-          background: linear-gradient(to top right, rgba(0, 0, 0, .1) 50%, transparent 50%);
-    
-          &::after {
-            top: -1px;
-            right: -1px;
-            border-bottom: 1px solid $BorderColorThemeWhiteBlue;
-            border-left: 1px solid $BorderColorThemeWhiteBlue;
-          }
-        }
-      }
-    
-      &.tooltip-left.tooltip-white-blue {
-        border: 1px solid $BorderColorThemeWhiteBlue;
-    
-        .tooltip-arrow {
-          top: 50%;
-          left: 100%;
-          margin-top: -5px;
-          margin-left: -3px;
-          background: linear-gradient(to bottom right, rgba(0, 0, 0, .07) 50%, transparent 50%);
-    
-          &::after {
-            top: 1px;
-            right: -1px;
-            border-top: 1px solid $BorderColorThemeWhiteBlue;
-            border-left: 1px solid $BorderColorThemeWhiteBlue;
-          }
-        }
-      }
-    
-      &.tooltip-right.tooltip-white-blue {
-        border: 1px solid $BorderColorThemeWhiteBlue;
-    
-        .tooltip-arrow {
-          top: 50%;
-          right: 100%;
-          margin-top: -5px;
-          margin-right: -3px;
-          background: linear-gradient(to top left, rgba(0, 0, 0, .07) 50%, transparent 50%);
-    
-          &::after {
-            top: -1px;
-            right: 1px;
-            border-bottom: 1px solid $BorderColorThemeWhiteBlue;
-            border-right: 1px solid $BorderColorThemeWhiteBlue;
-          }
-        }
-      }
 
 }
