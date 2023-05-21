@@ -9,7 +9,8 @@ export interface TooltipOptions {
     textColor?: string,
 	backgroundColor?: string,
 	borderColor?: string,
-    horizontalTextAlignment?: "left" | "center" | "right";
+    textAlign?: "left" | "center" | "right";
+    padding?: string;
     shadow?: boolean;
     showDelay?: number;
     hideDelay?: number;

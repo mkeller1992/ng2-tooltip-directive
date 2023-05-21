@@ -1,14 +1,13 @@
 {
-  "name": "ng2-tooltip-directive-ngfix",
-  "version": "16.1.2",
+  "name": "mk-magic-tooltips",
+  "version": "16.0.0",
   "description": "Tooltip for Angular",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/drozhzhin-n-e/ng2-tooltip-directive.git"
   },
   "author": {
-    "name": "Nikita Drozhzhin",
-    "email": "drozhzhin.n.e@gmail.com"
+    "name": "Matthias Keller"
   },
   "keywords": [
     "Angular",
@@ -18,7 +17,7 @@
     "tooltip",
     "popover"
   ],
-  "homepage": "http://ivylab.space/tooltip",
+  "homepage": "",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/drozhzhin-n-e/ng2-tooltip-directive/issues"

@@ -5,6 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
 import { TooltipModule } from 'ng2-tooltip-directive';
+import { AngularDraggableModule } from 'angular2-draggable';
 
 @NgModule({
   declarations: [
@@ -13,6 +14,7 @@ import { TooltipModule } from 'ng2-tooltip-directive';
   imports: [
     BrowserModule,
     AppRoutingModule,
+    AngularDraggableModule,
     TooltipModule
   ],
   providers: [],

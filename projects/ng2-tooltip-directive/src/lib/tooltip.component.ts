@@ -36,6 +36,7 @@ export class TooltipComponent implements OnInit, OnDestroy {
 	@HostBinding('class.tooltip') tooltipClass = true;
     @HostBinding('style.top') hostStyleTop!: string;
     @HostBinding('style.left') hostStyleLeft!: string;
+	@HostBinding('style.padding') hostStylePadding!: string;
     @HostBinding('style.z-index') hostStyleZIndex!: number;
     @HostBinding('style.transition') hostStyleTransition!: string;
     @HostBinding('style.width') hostStyleWidth!: string;
@@ -44,9 +45,11 @@ export class TooltipComponent implements OnInit, OnDestroy {
     @HostBinding('class.tooltip-show') hostClassShow!: boolean;
     @HostBinding('class.tooltip-hide') hostClassHide!: boolean;
     @HostBinding('class.tooltip-display-none') hostClassDisplayNone!: boolean;
-    @HostBinding('class.tooltip-shadow') hostClassShadow!: boolean;	
+    @HostBinding('class.tooltip-shadow') hostClassShadow!: boolean;
+
 	@HostBinding('style.--tooltip-text-color') textColor!: string;
-	@HostBinding('style.--tooltip-background-color') backgroundColor!: string;;
+	@HostBinding('style.--tooltip-text-align') textAlign!: string;
+	@HostBinding('style.--tooltip-background-color') backgroundColor!: string;
 	@HostBinding('style.--tooltip-border-color') borderColor!: string;
 
 
@@ -58,7 +61,6 @@ export class TooltipComponent implements OnInit, OnDestroy {
 
     currentContentType!: ContentType;
     originalPlacement!: Placement; // placement defined by user
-	horizontalTextAlignment!: string;
     autoPlacement!: boolean;
     hostElement!: any;
     hostElementPosition!: { top: number, left: number } | DOMRect;
@@ -159,12 +161,11 @@ export class TooltipComponent implements OnInit, OnDestroy {
 			this.tooltipTemplate = config.tooltipTemplate;
 		}
 
-        this.originalPlacement = config.options.placement!;
-        this.autoPlacement = config.options.autoPlacement!;
-		this.horizontalTextAlignment = config.options.horizontalTextAlignment!;
-        this.hostElement = config.hostElement;
+		this.hostElement = config.hostElement;
         this.hostElementPosition = config.hostElementPosition;
-        this.tooltipOffset = Number(config.options.offset);
+        this.originalPlacement = config.options.placement ?? defaultOptions.placement!;
+        this.autoPlacement = config.options.autoPlacement ?? defaultOptions.autoPlacement!;
+        this.tooltipOffset = !!config.options.offset ? +config.options.offset : +(defaultOptions.offset ?? 0);
         
         this.setCustomClass(config.options);
         this.setZIndex(config.options);
@@ -245,7 +246,7 @@ export class TooltipComponent implements OnInit, OnDestroy {
 	}
 
     private isPlacementInsideVisibleArea(styleData: TooltipStyles) {
-		const topEdge = styleData.topStyle;
+		const topEdge = styleData.topStyle - styleData.scrollY;
 		const bottomEdge = styleData.topStyle + styleData.tooltipHeight;
 		const leftEdge = styleData.leftStyle;
 		const rightEdge = styleData.leftStyle + styleData.tooltipWidth;
@@ -286,6 +287,8 @@ export class TooltipComponent implements OnInit, OnDestroy {
 
     private setStyles(options: TooltipOptions) {
 		this.textColor = options.textColor ?? defaultOptions.textColor!;
+		this.textAlign = options.textAlign ?? defaultOptions.textAlign!;
+		this.hostStylePadding = options.padding ?? defaultOptions.padding!;
 		this.backgroundColor = options.backgroundColor ?? defaultOptions.backgroundColor!;
 		this.borderColor = options.borderColor ?? defaultOptions.borderColor!;
         this.hostClassShadow = options.shadow ?? true;        

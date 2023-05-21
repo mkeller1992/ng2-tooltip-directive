@@ -64,9 +64,14 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
     }
 
     @Input()
-	set horizontalTextAlignment(val: 'left' | 'center' | 'right') {
-	 	 this.collectedOptions.horizontalTextAlignment = val;
+	set textAlign(val: 'left' | 'center' | 'right') {
+	 	 this.collectedOptions.textAlign = val;
 	}
+
+    @Input()
+    set padding(val: string) {
+        this.collectedOptions.padding = val;
+    }
 
     @Input()
     set hideDelayTouchscreen(val: number) {
