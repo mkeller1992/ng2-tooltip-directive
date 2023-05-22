@@ -104,11 +104,6 @@ export abstract class BaseTooltipDirective implements OnChanges, OnDestroy {
     }
 
     @Input()
-    set displayMobile(val: boolean) {
-        this.collectedOptions.displayMobile = val;
-    }
-
-    @Input()
     set displayTouchscreen(val: boolean) {
         this.collectedOptions.displayTouchscreen = val;
     }

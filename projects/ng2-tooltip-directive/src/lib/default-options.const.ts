@@ -21,7 +21,6 @@ export const defaultOptions: TooltipOptions = {
 	trigger: 'hover',
 	tooltipClass: '',
 	display: true,
-	displayMobile: true,
 	displayTouchscreen: true,
 	offset: 8,
 	maxWidth: '200px',

@@ -21,7 +21,6 @@ export interface TooltipOptions {
     trigger?: "hover" | "click";
     tooltipClass?: string;
     display?: boolean;
-    displayMobile?: boolean;
     displayTouchscreen?: boolean;
     offset?: number;
     width?: string;
