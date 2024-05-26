@@ -1,6 +1,6 @@
 # Tooltip for Angular
 
-**IMPORTANT**: <span style="color:red; font-weight:bold">There are breaking changes</span> in the setup and the usage of this library. Please read the instructions below.
+**IMPORTANT**: **There are breaking changes in the setup and the usage of this library. Please read the instructions below.**
 
 This library offers three different tooltip directives (string, html and template) and draws inspiration from the no longer maintained ng2-tooltip-directive.
 

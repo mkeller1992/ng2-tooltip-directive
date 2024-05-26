@@ -1,6 +1,6 @@
 {
   "name": "ng2-tooltip-directive-ngfix",
-  "version": "17.0.1",
+  "version": "17.0.2",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
