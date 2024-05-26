@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
+import { BrowserModule } from '@angular/platform-browser';
 import { AngularDraggableModule } from 'angular2-draggable';
 import { TooltipModule } from 'ng2-tooltip-directive';
 
@@ -11,6 +12,7 @@ import { TooltipModule } from 'ng2-tooltip-directive';
     AppComponent
   ],
   imports: [
+    BrowserModule,
     AppRoutingModule,
     AngularDraggableModule,
     TooltipModule
