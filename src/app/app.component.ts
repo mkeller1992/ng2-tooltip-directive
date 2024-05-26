@@ -9,7 +9,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 export class AppComponent implements OnInit {
 
-  title = 'MK Magic Tooltips';
+  title = 'Ng2 Tooltips';
   subTitle = 'Properties';
 
   tooltipHtml: string = '<div><p>This is a <strong>tooltip</strong> with HTML</p></div>';
