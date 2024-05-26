@@ -4,13 +4,13 @@ import { BaseTooltipDirective } from "./base-tooltip.directive";
 @Directive({
     selector: '[tooltipTemplate]',
     exportAs: 'tooltipTemplate',
+    standalone: true
 })
 
 export class TooltipTemplateDirective extends BaseTooltipDirective {
     
     @Input()
     set tooltipTemplate(value: TemplateRef<any>) {
-        super.initializeTooltip(value, 'template');
+        super.setTooltipContent(value, 'template');
     }
-
 }

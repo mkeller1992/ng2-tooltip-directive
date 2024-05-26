@@ -1,11 +1,12 @@
 import { Component, ElementRef, EventEmitter, HostBinding, OnDestroy, OnInit, Renderer2, TemplateRef } from '@angular/core';
 import { SafeHtml } from '@angular/platform-browser';
-import { filter, fromEvent, Subject, takeUntil, tap } from 'rxjs';
+import { Subject, filter, fromEvent, takeUntil, tap } from 'rxjs';
+import { ContentType } from './base-tooltip.directive';
 import { defaultOptions } from './default-options.const';
-import { TooltipDto } from './tooltip.dto';
 import { TooltipOptions } from './options.interface';
 import { Placement } from './placement.type';
-import { ContentType } from './base-tooltip.directive';
+import { TooltipDto } from './tooltip.dto';
+import { CommonModule } from '@angular/common';
 
 interface TooltipStyles {
 	placement: Placement;
@@ -18,10 +19,13 @@ interface TooltipStyles {
 }
 
 @Component({
-    selector: 'tooltip',
-    templateUrl: './tooltip.component.html',
-    styleUrls: ['./tooltip.component.scss']
-})
+	selector: 'tooltip',
+	templateUrl: './tooltip.component.html',
+	styleUrls: ['./tooltip.component.scss'],
+	standalone: true,
+	imports: [CommonModule]
+  })
+  
 
 export class TooltipComponent implements OnInit, OnDestroy {
 
@@ -33,25 +37,27 @@ export class TooltipComponent implements OnInit, OnDestroy {
 
     destroy$ = new Subject<void>();
 
+	@HostBinding('class') 
+    tooltipState: string = 'hide'; // Control the state of tooltip
+
+	@HostBinding('style.--transition-time')
+    transitionTime!: string;
+
 	@HostBinding('class.tooltip') tooltipClass = true;
     @HostBinding('style.top') hostStyleTop!: string;
     @HostBinding('style.left') hostStyleLeft!: string;
 	@HostBinding('style.padding') hostStylePadding!: string;
     @HostBinding('style.z-index') hostStyleZIndex!: number;
-    @HostBinding('style.transition') hostStyleTransition!: string;
     @HostBinding('style.width') hostStyleWidth!: string;
     @HostBinding('style.max-width') hostStyleMaxWidth!: string;
     @HostBinding('style.pointer-events') hostStylePointerEvents!: string;
-    @HostBinding('class.tooltip-show') hostClassShow!: boolean;
-    @HostBinding('class.tooltip-hide') hostClassHide!: boolean;
-    @HostBinding('class.tooltip-display-none') hostClassDisplayNone!: boolean;
-    @HostBinding('class.tooltip-shadow') hostClassShadow!: boolean;
+    @HostBinding('class.tooltip-shadow') hostClassShadow!: boolean;	
+	@HostBinding('class.tooltip-clickable') hostClassClickable!: boolean;
 
 	@HostBinding('style.--tooltip-text-color') textColor!: string;
 	@HostBinding('style.--tooltip-text-align') textAlign!: string;
 	@HostBinding('style.--tooltip-background-color') backgroundColor!: string;
 	@HostBinding('style.--tooltip-border-color') borderColor!: string;
-
 
     tooltipStr!: string;
     tooltipHtml!: SafeHtml;
@@ -78,23 +84,17 @@ export class TooltipComponent implements OnInit, OnDestroy {
     /* Methods that are invoked by base-tooltip.directive.ts */
 
     showTooltip(config: TooltipDto) {
-
         this.setTooltipProperties(config);
-    	this.hostClassDisplayNone = false;
+		this.tooltipState = 'show';
 
-    	// 'setTimeout()' prevents the tooltip from 'jumping around' +
-        // hostClassDisplayNone has to be called before hostClassShow and hostClassHide
-        // to make the transition animation work.
+    	// 'setTimeout()' prevents the tooltip from 'jumping around'
         setTimeout(() => {
-    		this.hostClassShow = true;
-    		this.hostClassHide = false;
-    		this.setPosition();
+			this.setPosition();
     	});
     }
 
     hideTooltip() {
-    	this.hostClassShow = false;
-    	this.hostClassHide = true;
+		this.tooltipState = 'hide';
     }
 
     setPosition(): void {
@@ -127,26 +127,25 @@ export class TooltipComponent implements OnInit, OnDestroy {
 
 	/* Private helper methods */
 
-    private listenToFadeInEnd() {
-    	fromEvent(this.elementRef.nativeElement, 'transitionend')
-    		.pipe(
-    			filter(() => this.hostClassShow),
-    			tap(() => this.events.emit({ type: 'shown' })),
-    			takeUntil(this.destroy$),
-    		)
-    		.subscribe();
-    }
-
-    private listenToFadeOutEnd() {
-    	fromEvent(this.elementRef.nativeElement, 'transitionend')
-    		.pipe(
-    			filter(() => this.hostClassHide),
-    			tap(() => this.hostClassDisplayNone = true),
-    			tap(() => this.events.emit({ type: 'hidden' })),
-    			takeUntil(this.destroy$),
-    		)
-    		.subscribe();
-    }
+	private listenToFadeInEnd() {
+		fromEvent<TransitionEvent>(this.elementRef.nativeElement, 'transitionend')
+		  .pipe(
+			filter(event => event.propertyName === 'opacity' && this.tooltipState === 'show'),
+			tap(() => this.events.emit({ type: 'shown' })),
+			takeUntil(this.destroy$),
+		  )
+		  .subscribe();
+	}
+	
+	private listenToFadeOutEnd() {
+		fromEvent<TransitionEvent>(this.elementRef.nativeElement, 'transitionend')
+		  .pipe(
+			filter(event => event.propertyName === 'opacity' && this.tooltipState === 'hide'),
+			tap(() => this.events.emit({ type: 'hidden' })),
+			takeUntil(this.destroy$)
+		  )
+		  .subscribe();
+	}
 
     private setTooltipProperties(config: TooltipDto) {
         this.currentContentType = config.options.contentType ?? 'string';
@@ -193,8 +192,14 @@ export class TooltipComponent implements OnInit, OnDestroy {
 		const tooltipWidth = tooltip.clientWidth;
 		const scrollY = window.scrollY;
 
-		let formControlHeight = isFormCtrlSVG ? this.hostElement.getBoundingClientRect().height : this.hostElement.offsetHeight;
-		let formControlWidth = isFormCtrlSVG ? this.hostElement.getBoundingClientRect().width : this.hostElement.offsetWidth;
+		let formControlHeight = isFormCtrlSVG
+			? this.hostElement.getBoundingClientRect().height
+			: this.hostElement.offsetHeight;
+
+		let formControlWidth = isFormCtrlSVG
+			? this.hostElement.getBoundingClientRect().width
+			: this.hostElement.offsetWidth;
+
 		// In case the user passed a custom position, the object would just contain {top: number, left: number}
 		const isCustomPosition = !(this.hostElementPosition instanceof DOMRect);
 	
@@ -203,35 +208,43 @@ export class TooltipComponent implements OnInit, OnDestroy {
 			formControlWidth = 0;
 		}
 
-		let topStyle;
-		let leftStyle;
+		let topStyle, leftStyle;
 
-		if (placement === 'top' || placement === 'top-left') {
-			topStyle = (this.hostElementPosition.top + scrollY) - (tooltipHeight + this.tooltipOffset);
+		switch (placement) {
+			case 'top':
+			case 'top-left':
+				topStyle = (this.hostElementPosition.top + scrollY) - (tooltipHeight + this.tooltipOffset);
+				break;
+	
+			case 'bottom':
+			case 'bottom-left':
+				topStyle = (this.hostElementPosition.top + scrollY) + (formControlHeight + this.tooltipOffset);
+				break;
+	
+			case 'left':
+			case 'right':
+				topStyle = (this.hostElementPosition.top + scrollY) + (formControlHeight / 2) - (tooltip.clientHeight / 2);
+				break;
 		}
 
-		if (placement === 'bottom' || placement === 'bottom-left') {
-			topStyle = (this.hostElementPosition.top + scrollY) + formControlHeight + this.tooltipOffset;
-		}
-
-		if (placement === 'top' || placement === 'bottom') {
-			leftStyle = (this.hostElementPosition.left + formControlWidth / 2) - tooltipWidth / 2;
-		}
-
-		if (placement === 'bottom-left' || placement === 'top-left') {
-			leftStyle = this.hostElementPosition.left;
-		}
-
-		if (placement === 'left') {
-			leftStyle = this.hostElementPosition.left - tooltipWidth - this.tooltipOffset;
-		}
-
-		if (placement === 'right') {
-			leftStyle = this.hostElementPosition.left + formControlWidth + this.tooltipOffset;
-		}
-
-		if (placement === 'left' || placement === 'right') {
-			topStyle = (this.hostElementPosition.top + scrollY) + formControlHeight / 2 - tooltip.clientHeight / 2;
+		switch (placement) {
+			case 'top':
+			case 'bottom':
+				leftStyle = (this.hostElementPosition.left + formControlWidth / 2) - (tooltipWidth / 2);
+				break;
+	
+			case 'top-left':
+			case 'bottom-left':
+				leftStyle = this.hostElementPosition.left;
+				break;
+	
+			case 'left':
+				leftStyle = this.hostElementPosition.left - tooltipWidth - this.tooltipOffset;
+				break;
+	
+			case 'right':
+				leftStyle = this.hostElementPosition.left + formControlWidth + this.tooltipOffset;
+				break;
 		}
 
 		return {
@@ -245,19 +258,15 @@ export class TooltipComponent implements OnInit, OnDestroy {
 		}
 	}
 
-    private isPlacementInsideVisibleArea(styleData: TooltipStyles) {
+	private isPlacementInsideVisibleArea(styleData: TooltipStyles): boolean {
 		const topEdge = styleData.topStyle - styleData.scrollY;
 		const bottomEdge = styleData.topStyle + styleData.tooltipHeight;
 		const leftEdge = styleData.leftStyle;
 		const rightEdge = styleData.leftStyle + styleData.tooltipWidth;
 		const bodyHeight = window.innerHeight + styleData.scrollY;
 		const bodyWidth = styleData.clientWidth;
-
-		if (topEdge < 0 || bottomEdge > bodyHeight || leftEdge < 0 || rightEdge > bodyWidth) {
-			return false;
-		}
-		
-		return true;				
+	
+		return topEdge >= 0 && bottomEdge <= bodyHeight && leftEdge >= 0 && rightEdge <= bodyWidth;
 	}
 
     private setCustomClass(options: TooltipOptions){
@@ -269,7 +278,7 @@ export class TooltipComponent implements OnInit, OnDestroy {
     }
 
     private setZIndex(options: TooltipOptions): void {
-        if (options.zIndex !== 0) {
+        if (options.zIndex && options.zIndex > 0) {
             this.hostStyleZIndex = options.zIndex ?? defaultOptions.zIndex ?? 0;
         }
     }
@@ -282,7 +291,7 @@ export class TooltipComponent implements OnInit, OnDestroy {
 
     private setAnimationDuration(options: TooltipOptions) {
     	const animationDuration = !!options.animationDuration ? options.animationDuration : options.animationDurationDefault;
-    	this.hostStyleTransition = `opacity ${animationDuration}ms`;
+    	this.transitionTime = `${animationDuration}ms`;
     }
 
     private setStyles(options: TooltipOptions) {
@@ -291,7 +300,8 @@ export class TooltipComponent implements OnInit, OnDestroy {
 		this.hostStylePadding = options.padding ?? defaultOptions.padding!;
 		this.backgroundColor = options.backgroundColor ?? defaultOptions.backgroundColor!;
 		this.borderColor = options.borderColor ?? defaultOptions.borderColor!;
-        this.hostClassShadow = options.shadow ?? true;        
+        this.hostClassShadow = options.shadow ?? true;
+		this.hostClassClickable = options?.trigger === 'click';
 
 		if (options.maxWidth) {
 			this.hostStyleMaxWidth = options.maxWidth;
